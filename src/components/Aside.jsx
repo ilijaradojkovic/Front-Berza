@@ -94,9 +94,9 @@ const Aside = () => {
                 backgroundColor: activeButton === button.value ? "#685AB0" : "",
                 borderRadius: "0rem",
                 color: "white",
-                "& :active": {
-                  backgroundColor: "#685AB0",
-                },
+                // "& :active": {
+                //   backgroundColor: "#685AB0",
+                // },
               }}
               // color="teal"
               // color={activeButton === button.value ? "blue" : "gray"}
@@ -130,6 +130,7 @@ const Aside = () => {
                   style={{
                     color: "#ae9eff",
                     border: "none !important",
+                    textAlign: "center",
                   }}
                 >
                   {header}
@@ -153,10 +154,18 @@ const Aside = () => {
                 >
                   {data.time}
                 </td>
-                <td>{data.bet}</td>
-                <td>{data.coeff}</td>
-                <td>{data.cashOut}</td>
-                <td>
+                <td style={{
+                    textAlign: "center",
+                }}>{data.bet}</td>
+                <td style={{
+                    textAlign: "center",
+                }}>{data.coeff}</td>
+                <td style={{
+                    textAlign: "center",
+                }}>{data.cashOut}</td>
+                <td style={{
+                    textAlign: "center",
+                }}>
                   <img src={correct} alt="correct" style={{
                     width: "0.8rem",
                     height: "0.8rem",

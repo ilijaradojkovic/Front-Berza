@@ -7,72 +7,57 @@ import bitcoin from "../assets/images/bitcoin.png";
 import growth from "../assets/images/growth.png";
 import fall from "../assets/images/fall.png";
 import emoji from "../assets/images/emoji.png";
+import axios from "axios";
+import { keyframes } from "@emotion/react";
 
 const ChartTest = ({ start }) => {
   const [chart, setChart] = useState([{ x: 1, y: 1 }]);
-  const [interpolatedChart, setInterpolatedChart] = useState([...chart]);
-
+  const [fetchedData, setFetchedData] = useState(null);
   const { width, height } = useViewportSize();
+  const [isPlaying, setIsPlaying] = useState(false);
 
-  // const [start, setStart] = useState(false);
+  const maskUrl = "https://heather-educated-hell.glitch.me/";
+
+  const apiUrl = "http://157.230.107.88:8001/crypto-run";
 
   useEffect(() => {
-    if (start) {
+    axios.get(apiUrl).then((res) => {
+      console.log(res.data);
+      setFetchedData(res.data);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (start && fetchedData) {
+      // setIsPlaying(true);
+      let index = 0;
+
       const interval = setInterval(() => {
         setChart((prev) => {
-          const lastNumber = prev[prev.length - 1].x + 0.1;
+          const lastNumber = prev[prev.length - 1]?.x + 0.1 || 0;
 
-          const lastValue = prev[prev.length - 1].y;
-          const randomChange = Math.random() * 10 - 5; // Nasumično odlučujemo da li povećavamo ili smanjujemo
-          const newValue = Math.max(2, Math.min(5, lastValue + randomChange));
-
-          const newChart = [...prev, { x: lastNumber, y: newValue }];
+          const newChart = [...prev, { x: lastNumber, y: fetchedData[index] }];
 
           if (newChart.length > 60) {
-            newChart.shift(); // Uklanja prvi podatak ako ima više od 20 podataka
+            newChart.shift();
+            setIsPlaying(true);
+          }
+
+          index++;
+          if (index >= fetchedData.length) {
+            clearInterval(interval);
+            setIsPlaying(false);
           }
 
           return newChart;
         });
       }, 100);
+
       return () => clearInterval(interval);
     }
-  }, [start]);
-
-  useEffect(() => {
-    if (chart.length === 1) {
-      setInterpolatedChart([...chart]);
-      return;
-    }
-
-    const lastPoint = chart[chart.length - 1];
-    const secondLastPoint = chart[chart.length - 2];
-    const diffX = lastPoint.x - secondLastPoint.x;
-    const diffY = lastPoint.y - secondLastPoint.y;
-
-    const numberOfPoints = Math.abs(diffX) / 0.1;
-    const timeInterval = 2000 / numberOfPoints;
-
-    let pointsToBeAdded = Array.from({ length: numberOfPoints }, (_, index) => {
-      return {
-        x: secondLastPoint.x + index * 0.01,
-        y: secondLastPoint.y + index * 0.01 * (diffY / diffX),
-      };
-    });
-
-    pointsToBeAdded.push(lastPoint);
-
-    setInterpolatedChart((prev) => [...prev.slice(0, -1)]);
-
-    pointsToBeAdded.forEach((point, index) => {
-      setTimeout(() => {
-        setInterpolatedChart((prev) => [...prev, point]);
-      }, timeInterval * index);
-    });
-  }, [chart]);
+  }, [start, fetchedData]);
 
   const xaxisMin = chart[0]?.x;
-  // const xaxisMax = new Date(chart[0]?.x.getTime() + 200 * 60 * 1000);
   const xaxisMax = chart[0]?.x + 200;
 
   const getGradientColorStops = (data) => {
@@ -101,33 +86,62 @@ const ChartTest = ({ start }) => {
 
   const chartRef = useRef(null);
 
+  const getHighestY = () => {
+    const series = chartRef.current?.chart?.w.config?.series[0]?.data;
+    if (!series) return 0;
+    return Math.max(...series.map((d) => d.y));
+  };
+
+  const [verticalPosition, setVerticalPosition] = useState(1);
+  // const [horizontalPosition, setHorizontalPosition] = useState(0);
+
+  useEffect(() => {
+    const yValue = chart[chart.length - 1]?.y ;
+    const newPosition = (yValue * 80);
+    setVerticalPosition(newPosition);
+  }, [chart, verticalPosition]);
+
+  const bgMoving = keyframes({
+    "0%": {
+      backgroundPositionX: `0%`,
+    },
+    "100%": {
+      backgroundPositionX: `-100%`,
+    },
+  });
+
+
   return (
     <Box
       sx={{
         backgroundImage: `url(${graphbg})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
+        backgroundSize: " 50% 50%",
+        backgroundPositionX: `0%`,
+        backgroundPositionY: `${verticalPosition}%`,
+        transition: "all 0.1s",
+        backgroundRepeat: "repeat",
         width: width / 1.3,
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
         padding: "2.7rem",
-        // height: "10vh",
-        // position: "relative",
         borderRadius: "0.5rem",
         boxShadow: "0 0 1rem rgba(0,0,0,0.2)",
+        animation: `${bgMoving} 3s linear infinite`,
+        animationPlayState: isPlaying ? "running" : "paused",
       }}
     >
-      <Box sx={{
-        position: 'relative'
-      }}>
+      <Box
+        sx={{
+          position: "relative",
+        }}
+      >
         <ReactApexChart
           ref={chartRef}
           options={{
             chart: {
-              type: "line", // Promenite tip grafikona u "line"
+              type: "line",
               height: 350,
               animations: {
                 enabled: false,
@@ -152,7 +166,6 @@ const ChartTest = ({ start }) => {
             stroke: {
               width: 4,
               curve: "smooth",
-              // colors: chart.map(data => data.color),
             },
             fill: {
               type: "gradient",
@@ -170,25 +183,25 @@ const ChartTest = ({ start }) => {
               horizontalAlign: "left",
             },
             xaxis: {
-              type: "numeric", // Postavite tip x ose na numerički
+              type: "numeric",
               labels: {
                 formatter: function (value) {
-                  return `${value.toFixed()} s`; // Formatira vrednost kao sekunde
+                  return `${value?.toFixed()} s`;
                 },
               },
               min: chart[0]?.x,
               max: chart[0]?.x + 6,
             },
             yaxis: {
-              type: "numeric", // Postavite tip y ose na numerički
+              type: "numeric",
               labels: {
                 formatter: function (value) {
-                  return `${value.toFixed()}.00x`; // Formatira vrednost kao procente
+                  return `${value?.toFixed(2)}x`;
                 },
               },
               min: 1,
-              max: 7,
-              tickAmount: 7,
+              max: getHighestY() + 1,
+              tickAmount: 5,
             },
             annotations: {
               points: [
@@ -201,7 +214,6 @@ const ChartTest = ({ start }) => {
                     height: 40,
                     offsetX: 0,
                     offsetY: 0,
-                    
                   },
                 },
               ],
@@ -213,22 +225,23 @@ const ChartTest = ({ start }) => {
               data: chart,
             },
           ]}
-          type="line" // Promenite tip grafikona u "line" ovde
+          type="line"
           height={height / 2.27}
           width={width / 1.4}
         />
-        <Box sx={{
-          position: 'absolute',
-          top: '10%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          color: 'white',
-          fontSize: '3rem',
-          fontWeight: 'bold',
-          zIndex: 100,
-        
-        }}>
-          {{...chart[chart.length - 1]}?.y.toFixed(2)}x
+        <Box
+          sx={{
+            position: "absolute",
+            top: "10%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            color: "white",
+            fontSize: "3rem",
+            fontWeight: "bold",
+            zIndex: 100,
+          }}
+        >
+          {{ ...chart[chart.length - 1] }?.y?.toFixed(2)}x
         </Box>
       </Box>
       <Box
