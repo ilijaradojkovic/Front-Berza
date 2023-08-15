@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import logo from "../assets/images/logo.png";
 import correct from "../assets/images/correct.png";
 
-const Aside = () => {
+const Aside = ({isLandScape}) => {
   const [activeButton, setActiveButton] = useState("0");
 
   const buttons = [
@@ -63,22 +63,23 @@ const Aside = () => {
       }}
     >
       {" "}
-      <img src={logo} alt="logo" />
+
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
           backgroundColor: "#3b3363",
-          // padding: "1rem",
           borderRadius: "0.2rem",
           height: "100%",
-          marginTop: "1.8rem",
+          width: isLandScape ? "auto" : "100%",
+          marginTop: isLandScape ? "0rem" : "0rem",
         }}
       >
         <Box
           sx={{
             display: "flex",
             padding: "0.5rem",
+            justifyContent: "space-between",
 
             border: "1px solid #685ab0",
             backgroundColor: "#4a407d",
@@ -94,16 +95,8 @@ const Aside = () => {
                 backgroundColor: activeButton === button.value ? "#685AB0" : "",
                 borderRadius: "0rem",
                 color: "white",
-                // "& :active": {
-                //   backgroundColor: "#685AB0",
-                // },
+                width: "100%",
               }}
-              // color="teal"
-              // color={activeButton === button.value ? "blue" : "gray"}
-              // sx={{
-              //     margin: "0.5rem 0",
-              //     width: "10rem",
-              // }}
             >
               {button.name}
             </Button>

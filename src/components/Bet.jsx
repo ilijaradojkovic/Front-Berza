@@ -1,7 +1,7 @@
 import { Box, Button, Switch, Text, TextInput } from "@mantine/core";
 import React, { useEffect, useState } from "react";
 
-const Bet = ({ setStart }) => {
+const Bet = ({ setStart, isLandScape }) => {
   const [betAmount, setBetAmount] = useState(100);
   const [cashOutAmount, setCashOutAmount] = useState(1.6);
   const options = ["1$", "2$", "5$", "10$"];
@@ -27,8 +27,8 @@ const Bet = ({ setStart }) => {
           width: "100%",
           height: "86%",
           display: "flex",
-          //   justifyContent: "stretch",
-          //   alignItems: "stretch",
+            justifyContent: "stretch",
+            alignItems: "stretch",
 
           gap: "1rem",
         }}
@@ -297,9 +297,11 @@ const Bet = ({ setStart }) => {
             backgroundImage:
               "linear-gradient(180deg, #00FCC1 5.00%, #008563 93.00%)",
             width: "100%",
-            height: "100%",
+            minHeight: "10rem",
             fontSize: "2.5rem",
             borderRadius: "0.5rem",
+            display: "block",
+            // flex: 1,
             //   margin: "2rem",
           }}
           onClick={() => setStart(true)}

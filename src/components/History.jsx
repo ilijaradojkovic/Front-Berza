@@ -97,9 +97,12 @@ const History = () => {
       </Box></Box>
       <ScrollArea 
         // style={{ width: "100%", height: "100%" }}
+        color="silver"
         sx={{
             width: "68vw",
             height: "150%",
+        
+
         }}
         >
         <Box style={{ display: "flex", gap: "1rem" }}>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
@@ -9,10 +9,24 @@ import Footer from "./components/Footer";
 import History from "./components/History";
 import { MantineProvider } from "@mantine/core";
 import Navbar from "./components/Navbar";
+import { useViewportSize } from "@mantine/hooks";
+
 
 function App() {
   const [count, setCount] = useState(0);
   const [start, setStart] = useState(false);
+  const [isLandScape, setIsLandscape] = useState(false);
+
+  const { width, height } = useViewportSize();
+
+  useEffect(() => {
+    if (width > height) {
+      setIsLandscape(true);
+    } else {
+      setIsLandscape(false);
+    }
+  }, [width, height]);
+
 
   return (
     <MantineProvider
@@ -48,31 +62,32 @@ function App() {
         sx={{
           display: "flex",
           flexDirection: "column",
-          padding: "2rem",
-          height: window.innerHeight,
+          padding: isLandScape ? "2rem" : "1rem",
+          height: isLandScape ? window.innerHeight : "auto",
           width: window.innerWidth,
           overflow: "hidden",
         }}
       >
-    
+      <Navbar isLandScape={isLandScape}/>
         <Box
           sx={{
             display: "flex",
+            flexDirection: isLandScape ? "row" : "column-reverse",
             gap: "1rem",
             justifyContent: "space-between",
           }}
-        >
-          <Aside />
+        > 
+          <Aside isLandScape={isLandScape}/>
           <Box
             sx={{
               display: "flex",
               flexDirection: "column",
               gap: "1rem",
             }}
-          >    <Navbar />
+          > 
             <History />
-            <ChartTest start={start} />
-            <Footer setStart={setStart} />
+            <ChartTest start={start}  isLandScape={isLandScape}/>
+            <Footer setStart={setStart} isLandScape={isLandScape}/>
           </Box>
         </Box>
       </Box>
