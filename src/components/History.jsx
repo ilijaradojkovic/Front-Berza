@@ -76,35 +76,37 @@ const History = () => {
         alignItems: "flex-start",
       }}
     >
-        <Box sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            // width: "100%",
-            gap: "1rem",
-        }}>
-      History
       <Box
         sx={{
-          backgroundColor: "#3eb89b",
-          padding: "0.5rem",
-          width: "5rem",
-          textAlign: "center",
-          borderRadius: "0.2rem",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          // width: "100%",
+          gap: "1rem",
         }}
       >
-        See All
-      </Box></Box>
-      <ScrollArea 
+        History
+        <Box
+          sx={{
+            backgroundColor: "#3eb89b",
+            padding: "0.5rem",
+            width: "5rem",
+            textAlign: "center",
+            borderRadius: "0.2rem",
+          }}
+        >
+          See All
+        </Box>
+      </Box>
+      <ScrollArea
         // style={{ width: "100%", height: "100%" }}
         color="silver"
         sx={{
-            width: "68vw",
-            height: "150%",
-        
-
+          width: "68vw",
+          height: "150%",
+          position: "relative",
         }}
-        >
+      >
         <Box style={{ display: "flex", gap: "1rem" }}>
           {history.map((item, index) => (
             <Box
@@ -120,7 +122,19 @@ const History = () => {
             >
               {item.value}x
             </Box>
-          ))}
+          ))}{" "}
+          <Box
+            sx={{
+              position: "absolute",
+              top: "0",
+              left: "0",
+              width: "68vw",
+              height: "100%",
+              backgroundImage:
+                "linear-gradient(to right, #00000000 90%, #1e1933 100%)",
+                // boxShadow: "inset 0 0 100px #1e1933",
+            }}
+          />
         </Box>
       </ScrollArea>
     </Box>

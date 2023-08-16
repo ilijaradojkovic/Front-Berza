@@ -10,12 +10,12 @@ import emoji from "../assets/images/emoji.png";
 import axios from "axios";
 import { keyframes } from "@emotion/react";
 
-const ChartTest = ({ start, isLandScape }) => {
+const ChartTest = ({ isLandScape }) => {
   const [chart, setChart] = useState([{ x: 1, y: 1 }]);
   const [fetchedData, setFetchedData] = useState(null);
   const { width, height } = useViewportSize();
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMoving, setIsMoving] = useState(false);
+  const [isMoving, setIsMoving] = useState(true);
   const [verticalPosition, setVerticalPosition] = useState(1);
   const [isIncreasing, setIsIncreasing] = useState(true);
 
@@ -23,38 +23,50 @@ const ChartTest = ({ start, isLandScape }) => {
 
   const apiUrl = "http://157.230.107.88:8001/crypto-run";
 
-  useEffect(() => {
-    axios.get(apiUrl).then((res) => {
-      console.log(res.data);
+  const fetchData = async () => {
+    const res = await axios.get(apiUrl);
+    console.log(res.data);
+    // setFetchedData(res.data);
+    if (res.data.length < 2) {
+      fetchData();
+    } else {
       setFetchedData(res.data);
-    });
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
-  useEffect(() => {
-    if (start && fetchedData) {
-      setIsMoving(true);
-      let index = 0;
+  const handleChartUpdate = () => {
+    setIsMoving(true);
+    let index = 0;
 
-      const interval = setInterval(() => {
-        setChart((prev) => {
-          const lastNumber = prev[prev.length - 1]?.x + 0.1 || 0;
-          const newChart = [...prev, { x: lastNumber, y: fetchedData[index] }];
-          if (newChart.length > 60) {
-            newChart.shift();
-            setIsPlaying(true);
-          }
-          index++;
-          if (index >= fetchedData.length) {
-            clearInterval(interval);
-            setIsPlaying(false);
-            setIsMoving(false);
-          }
-          return newChart;
-        });
-      }, 100);
-      return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      setChart((prev) => {
+        const lastNumber = prev[prev.length - 1]?.x + 0.1 || 0;
+        const newChart = [...prev, { x: lastNumber, y: fetchedData[index] }];
+        if (newChart.length > 60) {
+          newChart.shift();
+          setIsPlaying(true);
+        }
+        index++;
+        if (index >= fetchedData.length) {
+          clearInterval(interval);
+          setIsPlaying(false);
+          setIsMoving(false);
+        }
+        return newChart;
+      });
+    }, 100);
+    return () => clearInterval(interval);
+  };
+
+  useEffect(() => {
+    if (fetchedData) {
+      handleChartUpdate();
     }
-  }, [start, fetchedData]);
+  }, [fetchedData]);
 
   const getGradientColorStops = (data) => {
     const maxVal = Math.max(...data);
@@ -131,6 +143,90 @@ const ChartTest = ({ start, isLandScape }) => {
     },
   });
 
+  const [imagePositionX, setImagePositionX] = useState(0);
+  const [imagePositionY, setImagePositionY] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
+  const [reset, setReset] = useState(false);
+  const [ticker, setTicker] = useState(10);
+
+  useEffect(() => {
+    if (!isMoving) {
+      setGameOver(true);
+      if (imagePositionX < 2000) {
+        const interval = setInterval(() => {
+          setImagePositionX((prev) => {
+            return prev + 10;
+          });
+          if (isIncreasing) {
+            setImagePositionY((prev) => {
+              return prev - 4;
+            });
+          } else {
+            setImagePositionY((prev) => {
+              return prev + 4;
+            });
+          }
+        }, 10);
+
+        return () => clearInterval(interval);
+      }
+    }
+  }, [chart, isMoving, imagePositionX]);
+
+  useEffect(() => {
+    if (gameOver && ticker > 0) {
+      const interval = setInterval(() => {
+        setTicker((prev) => {
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+    if (ticker === 0) {
+      const timeout = setTimeout(() => {
+        setTicker(10);
+      }, 1500);
+      setChart([{ x: 1, y: 1 }]);
+      setImagePositionX(0);
+      setImagePositionY(0);
+    }
+  }, [gameOver, ticker, fetchedData, reset, chart]);
+
+  useEffect(() => {
+    if (ticker === 0) {
+      setReset(true);
+      setGameOver(false);
+    }
+  }, [ticker]);
+
+  useEffect(() => {
+    if (reset) {
+      fetchData();
+      setGameOver(false);
+      setReset(false);
+      setIsMoving(true);
+      let index = 0;
+      const interval = setInterval(() => {
+        setChart((prev) => {
+          const lastNumber = prev[prev.length - 1]?.x + 0.1 || 0;
+          const newChart = [...prev, { x: lastNumber, y: fetchedData[index] }];
+          if (newChart.length > 60) {
+            newChart.shift();
+            setIsPlaying(true);
+          }
+          index++;
+          if (index >= fetchedData.length) {
+            clearInterval(interval);
+            setIsPlaying(false);
+            setIsMoving(false);
+          }
+          return newChart;
+        });
+      }, 100);
+      return () => clearInterval(interval);
+    }
+  }, [reset]);
+
   return (
     <>
       <Box
@@ -174,7 +270,6 @@ const ChartTest = ({ start, isLandScape }) => {
                 zoom: {
                   enabled: false,
                 },
-                
               },
               tooltip: {
                 enabled: false,
@@ -191,6 +286,7 @@ const ChartTest = ({ start, isLandScape }) => {
               stroke: {
                 width: 5,
                 curve: "smooth",
+                lineCap: "round",
               },
               fill: {
                 type: "gradient",
@@ -233,12 +329,15 @@ const ChartTest = ({ start, isLandScape }) => {
                   {
                     x: chart[chart.length - 1]?.x,
                     y: chart[chart.length - 1]?.y,
+                    marker: {
+                      size: 0,
+                    },
                     image: {
                       path: emoji,
                       width: 40,
                       height: 40,
-                      offsetX: 0,
-                      offsetY: 0,
+                      offsetX: imagePositionX,
+                      offsetY: imagePositionY,
                     },
                   },
                 ],
@@ -257,16 +356,35 @@ const ChartTest = ({ start, isLandScape }) => {
           <Box
             sx={{
               position: "absolute",
-              top: isLandScape ? "10%" : "40%",
+              top: isLandScape ? "20%" : "40%",
               left: "50%",
-              transform: "translate(-50%, -50%)",
-              color: "white",
+              transform: `translate(-50%, -50%)`,
               fontSize: isLandScape ? "3rem" : "2.5rem",
               fontWeight: "bold",
               zIndex: 100,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
             }}
           >
-            {{ ...chart[chart.length - 1] }?.y?.toFixed(2)}x
+            <Box
+              sx={{
+                transform: `scale(${gameOver ? 1.5 : 1})`,
+                color: gameOver ? "#ff3b65" : "white",
+                transition: "all 0.5s",
+              }}
+            >
+              {{ ...chart[chart.length - 1] }?.y?.toFixed(2)}x
+            </Box>
+            <Box
+              sx={{
+                opacity: gameOver ? 1 : 0,
+                transition: "all 0.5s",
+                color: "white",
+              }}
+            >
+              Next withdraw in {ticker}
+            </Box>
           </Box>
         </Box>
         {isLandScape && (

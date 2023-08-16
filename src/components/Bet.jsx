@@ -6,6 +6,8 @@ const Bet = ({ setStart, isLandScape }) => {
   const [cashOutAmount, setCashOutAmount] = useState(1.6);
   const options = ["1$", "2$", "5$", "10$"];
 
+  const [isBeting, setIsBeting] = useState(false);
+
   //   useEffect(() => {
   //     setFormatedBetAmount(betAmount + "$");
   //     }, [betAmount]);
@@ -304,9 +306,9 @@ const Bet = ({ setStart, isLandScape }) => {
             // flex: 1,
             //   margin: "2rem",
           }}
-          onClick={() => setStart(true)}
+          onClick={() => setIsBeting(!isBeting)}
         >
-          BET
+          {isBeting ? "Cancel" : "Bet"}
         </Button>
       </Box>
     </Box>
