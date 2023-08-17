@@ -2,8 +2,10 @@ import { Box, Button, Table } from "@mantine/core";
 import React, { useState } from "react";
 import logo from "../assets/images/logo.png";
 import correct from "../assets/images/correct.png";
+import { thousandSeparator } from "../helpers/formatNumbers";
+import { GppBad, GppGood } from "@mui/icons-material";
 
-const Aside = ({isLandScape}) => {
+const Aside = ({ isLandScape, bets }) => {
   const [activeButton, setActiveButton] = useState("0");
 
   const buttons = [
@@ -63,7 +65,6 @@ const Aside = ({isLandScape}) => {
       }}
     >
       {" "}
-
       <Box
         sx={{
           display: "flex",
@@ -132,9 +133,9 @@ const Aside = ({isLandScape}) => {
             </tr>
           </thead>
           <tbody>
-            {tableData.map((data, index) => (
+            {bets && bets.map((data, index) => (
               <tr
-                key={data.index}
+                key={index}
                 style={{
                   backgroundColor: index % 2 === 0 ? "#4a407d" : "#3b3363",
                   border: "2px solid transparent",
@@ -145,25 +146,49 @@ const Aside = ({isLandScape}) => {
                     border: "none !important",
                   }}
                 >
-                  {data.time}
+                  {String(new Date(data.time).getHours()).padStart(2,'0')}
+                  :
+                  {String(new Date(data.time).getMinutes()).padStart(2,'0')}
                 </td>
-                <td style={{
+                <td
+                  style={{
                     textAlign: "center",
-                }}>{data.bet}</td>
-                <td style={{
+                  }}
+                >
+                  {data?.bet && thousandSeparator(data?.bet)}
+                </td>
+                <td
+                  style={{
                     textAlign: "center",
-                }}>{data.coeff}</td>
-                <td style={{
+                  }}
+                >
+                  {data?.coeff && thousandSeparator(data?.coeff)}
+                </td>
+                <td
+                  style={{
                     textAlign: "center",
-                }}>{data.cashOut}</td>
-                <td style={{
+                  }}
+                >
+                  {data?.cashOut && thousandSeparator(data?.cashOut)}
+                </td>
+                <td
+                  style={{
                     textAlign: "center",
-                }}>
-                  <img src={correct} alt="correct" style={{
-                    width: "0.8rem",
-                    height: "0.8rem",
-                    objectFit: "contain",
-                  }}/>
+                  }}
+                >
+                  {data?.profit ? (
+                    <GppGood 
+                    sx={{
+                      color: '#3eb89b'
+                    }}
+                    />
+                  ) : (
+                    <GppBad
+                      sx={{
+                        color: "#ff3b65",
+                      }}
+                    />
+                  )}
                 </td>
               </tr>
             ))}

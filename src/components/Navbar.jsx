@@ -8,8 +8,9 @@ import bell from "../assets/images/bell.png";
 import profile from "../assets/images/profile.png";
 import logout from "../assets/images/logout.png";
 import { Menu } from "@mui/icons-material";
+import { thousandSeparator } from "../helpers/formatNumbers";
 
-const Navbar = ({ isLandScape }) => {
+const Navbar = ({ isLandScape, balance }) => {
   return (
     <Box
       sx={{
@@ -55,7 +56,7 @@ const Navbar = ({ isLandScape }) => {
           gap: isLandScape ? "0.6rem" : "0.3rem",
         }}
       >
-        <b>BALANCE:</b> 25,029.00${" "}
+        <b>BALANCE:</b> {balance && thousandSeparator(balance)}${" "}
         <button
           style={{
             width: isLandScape ? "30px" : "28px",

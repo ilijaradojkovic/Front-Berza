@@ -9,15 +9,18 @@ import Footer from "./components/Footer";
 import History from "./components/History";
 import { MantineProvider } from "@mantine/core";
 import Navbar from "./components/Navbar";
-import { useViewportSize } from "@mantine/hooks";
-
+import {  useViewportSize } from "@mantine/hooks";
+import { useLocalStorage } from "./hooks/useLocalStorage";
 
 function App() {
   const [count, setCount] = useState(0);
   const [start, setStart] = useState(false);
   const [isLandScape, setIsLandscape] = useState(false);
+  const [balance, setBalance] = useLocalStorage("balance",10000);
 
   const { width, height } = useViewportSize();
+
+  const [bets, setBets] = useLocalStorage("bets",[])
 
   useEffect(() => {
     if (width > height) {
@@ -26,7 +29,6 @@ function App() {
       setIsLandscape(false);
     }
   }, [width, height]);
-
 
   return (
     <MantineProvider
@@ -68,7 +70,7 @@ function App() {
           overflow: "hidden",
         }}
       >
-      <Navbar isLandScape={isLandScape}/>
+        <Navbar isLandScape={isLandScape} balance={balance} />
         <Box
           sx={{
             display: "flex",
@@ -76,19 +78,9 @@ function App() {
             gap: "1rem",
             justifyContent: "space-between",
           }}
-        > 
-          <Aside isLandScape={isLandScape}/>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "1rem",
-            }}
-          > 
-            <History />
-            <ChartTest start={start}  isLandScape={isLandScape}/>
-            <Footer setStart={setStart} isLandScape={isLandScape}/>
-          </Box>
+        >
+          <Aside isLandScape={isLandScape} bets={bets}/>
+          <ChartTest start={start} isLandScape={isLandScape} setBalance={setBalance} balance={balance} bets={bets} setBets={setBets}/>
         </Box>
       </Box>
     </MantineProvider>

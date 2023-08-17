@@ -9,8 +9,11 @@ import fall from "../assets/images/fall.png";
 import emoji from "../assets/images/emoji.png";
 import axios from "axios";
 import { keyframes } from "@emotion/react";
+import Footer from "./Footer";
+import History from "./History";
+import { useLocalStorage } from "@mantine/hooks";
 
-const ChartTest = ({ isLandScape }) => {
+const ChartTest = ({ isLandScape, setBalance, balance, bets, setBets }) => {
   const [chart, setChart] = useState([{ x: 1, y: 1 }]);
   const [fetchedData, setFetchedData] = useState(null);
   const { width, height } = useViewportSize();
@@ -18,6 +21,7 @@ const ChartTest = ({ isLandScape }) => {
   const [isMoving, setIsMoving] = useState(true);
   const [verticalPosition, setVerticalPosition] = useState(1);
   const [isIncreasing, setIsIncreasing] = useState(true);
+  const [history, setHistory] = useLocalStorage("history", []);
 
   const maskUrl = "https://heather-educated-hell.glitch.me/";
 
@@ -175,6 +179,7 @@ const ChartTest = ({ isLandScape }) => {
 
   useEffect(() => {
     if (gameOver && ticker > 0) {
+      // setChart([{ x: 1, y: 1 }]);
       const interval = setInterval(() => {
         setTicker((prev) => {
           return prev - 1;
@@ -182,11 +187,14 @@ const ChartTest = ({ isLandScape }) => {
       }, 1000);
       return () => clearInterval(interval);
     }
+    // if (ticker === 1) {
+    //   setChart([{ x: 1, y: 1 }]);
+    // }
     if (ticker === 0) {
       const timeout = setTimeout(() => {
         setTicker(10);
       }, 1500);
-      setChart([{ x: 1, y: 1 }]);
+      // setChart([{ x: 1, y: 1 }]);
       setImagePositionX(0);
       setImagePositionY(0);
     }
@@ -194,6 +202,7 @@ const ChartTest = ({ isLandScape }) => {
 
   useEffect(() => {
     if (ticker === 0) {
+      setChart([{ x: 1, y: 1 }]);
       setReset(true);
       setGameOver(false);
     }
@@ -227,8 +236,27 @@ const ChartTest = ({ isLandScape }) => {
     }
   }, [reset]);
 
+  useEffect(() => {
+    if (gameOver) {
+      setGameOver(true);
+      setHistory((prev) => {
+        if (prev && Array.isArray(prev)) {
+          return [chart[chart.length - 1].y, ...prev]; // Verovatno ste mislili na `chart.length - 1`
+        }
+        return [chart[chart.length - 1].y]; // Ako `prev` nije iterabilno, vrati novi niz
+      });
+    }
+  }, [gameOver]);
+
   return (
-    <>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "1rem",
+      }}
+    >
+      <History history={history} />
       <Box
         sx={{
           backgroundImage: `url(${graphbg})`,
@@ -544,7 +572,10 @@ const ChartTest = ({ isLandScape }) => {
           </Box>
         </Box>
       )}
-    </>
+      <Footer isLandScape={isLandScape} gameOver={gameOver} setBalance={setBalance} balance={balance} currentValue={chart[chart.length - 1]?.y}
+      bets={bets} setBets={setBets}
+      />
+    </Box>
   );
 };
 

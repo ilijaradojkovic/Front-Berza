@@ -1,16 +1,88 @@
 import { Box, Button, Switch, Text, TextInput } from "@mantine/core";
 import React, { useEffect, useState } from "react";
 
-const Bet = ({ setStart, isLandScape }) => {
+const Bet = ({
+  setStart,
+  isLandScape,
+  gameOver,
+  setBalance,
+  balance,
+  currentValue,
+  bets,
+  setBets
+}) => {
   const [betAmount, setBetAmount] = useState(100);
   const [cashOutAmount, setCashOutAmount] = useState(1.6);
-  const options = ["1$", "2$", "5$", "10$"];
+  const [autoCashOut, setAutoCashOut] = useState(false);
+  const options = [1, 2, 5, 10];
 
   const [isBeting, setIsBeting] = useState(false);
+  const [isSold, setIsSold] = useState(false);
 
   //   useEffect(() => {
   //     setFormatedBetAmount(betAmount + "$");
   //     }, [betAmount]);
+
+  const bet = () => {
+    if (isBeting) {
+      setIsBeting(false);
+      setBalance(balance + betAmount);
+    } else {
+      setIsBeting(true);
+      setBalance(balance - betAmount);
+    }
+  };
+
+  const sell = () => {
+    setIsSold(true);
+    setBalance(balance + currentValue * betAmount);
+    setBets(prev => [
+      { 
+        time: new Date().getTime(),
+        bet: betAmount,
+        coeff: currentValue,
+        cashOut: currentValue * betAmount,
+        profit: true
+      },
+      ...prev
+    ]);
+  };
+
+  useEffect(() => {
+    if (isBeting && autoCashOut && !isSold && currentValue >= cashOutAmount) {
+      setIsSold(true);
+      setBalance(balance + cashOutAmount * betAmount);
+      setBets(prev => [
+        { 
+          time: new Date().getTime(),
+          bet: betAmount,
+          coeff: cashOutAmount,
+          cashOut: cashOutAmount * betAmount,
+          profit: true
+        },
+        ...prev
+      ]);
+    }
+  }, [isBeting, autoCashOut, isSold, currentValue, cashOutAmount]);
+
+  useEffect(() => {
+    if (gameOver) {
+      setIsBeting(false);
+      setIsSold(false);
+      if (isBeting && !isSold) {
+        setBets(prev => [
+          { 
+            time: new Date().getTime(),
+            bet: betAmount,
+            coeff: 0,
+            cashOut: 0,
+            profit: false
+          },
+          ...prev
+        ]);
+      }
+    }
+  }, [gameOver, isSold]);
 
   return (
     <Box
@@ -29,8 +101,8 @@ const Bet = ({ setStart, isLandScape }) => {
           width: "100%",
           height: "86%",
           display: "flex",
-            justifyContent: "stretch",
-            alignItems: "stretch",
+          justifyContent: "stretch",
+          alignItems: "stretch",
 
           gap: "1rem",
         }}
@@ -62,6 +134,7 @@ const Bet = ({ setStart, isLandScape }) => {
                 borderRadius: "4px",
               },
             }}
+            readOnly={!gameOver || isBeting}
             rightSection={
               <Box
                 sx={{
@@ -87,6 +160,7 @@ const Bet = ({ setStart, isLandScape }) => {
                   onClick={() => {
                     setBetAmount((prev) => prev + 1);
                   }}
+                  disabled={!gameOver || isBeting}
                 >
                   <span
                     style={{
@@ -120,6 +194,7 @@ const Bet = ({ setStart, isLandScape }) => {
                     alignItems: "center",
                     cursor: "pointer",
                   }}
+                  disabled={!gameOver || isBeting}
                   onClick={() => {
                     setBetAmount((prev) => prev - 1);
                   }}
@@ -157,7 +232,7 @@ const Bet = ({ setStart, isLandScape }) => {
             {options.map((option) => {
               return (
                 <button
-                  key={option + Math.random()}
+                  key={option}
                   style={{
                     border: "1px solid white",
                     padding: "0.5rem",
@@ -168,12 +243,11 @@ const Bet = ({ setStart, isLandScape }) => {
                     cursor: "pointer",
                   }}
                   onClick={() => {
-                    setBetAmount(
-                      (prev) => prev + Number(option.replace(/\D/g, ""))
-                    );
+                    setBetAmount((prev) => prev + option);
                   }}
+                  disabled={!gameOver || isBeting}
                 >
-                  {option}
+                  {option} $
                 </button>
               );
             })}
@@ -186,7 +260,12 @@ const Bet = ({ setStart, isLandScape }) => {
             }}
           >
             <Text>Auto Cashout</Text>
-            <Switch color="ocean-blue" />
+            <Switch
+              color="ocean-blue"
+              value={autoCashOut}
+              onChange={() => setAutoCashOut(!autoCashOut)}
+              disabled={!gameOver || isBeting}
+            />
           </Box>
           <TextInput
             value={`${cashOutAmount}x`}
@@ -306,9 +385,10 @@ const Bet = ({ setStart, isLandScape }) => {
             // flex: 1,
             //   margin: "2rem",
           }}
-          onClick={() => setIsBeting(!isBeting)}
+          disabled={(!gameOver && !isBeting) || isSold}
+          onClick={gameOver ? bet : sell}
         >
-          {isBeting ? "Cancel" : "Bet"}
+          {gameOver ? (isBeting ? "Cancel" : "Bet") : isSold ? "Sold" : "Sell"}
         </Button>
       </Box>
     </Box>
