@@ -11,7 +11,8 @@ import axios from "axios";
 import { keyframes } from "@emotion/react";
 import Footer from "./Footer";
 import History from "./History";
-import { useLocalStorage } from "@mantine/hooks";
+import { useLocalStorage } from "../hooks/useLocalStorage";
+import { thousandSeparator } from "../helpers/formatNumbers";
 
 const ChartTest = ({ isLandScape, setBalance, balance, bets, setBets }) => {
   const [chart, setChart] = useState([{ x: 1, y: 1 }]);
@@ -152,6 +153,9 @@ const ChartTest = ({ isLandScape, setBalance, balance, bets, setBets }) => {
   const [gameOver, setGameOver] = useState(false);
   const [reset, setReset] = useState(false);
   const [ticker, setTicker] = useState(10);
+  const [investory, setInvestory] = useLocalStorage('investory', 0);
+  const [wins, setWins] = useLocalStorage('wins', 0);
+  const [loses, setLoses] = useLocalStorage('loses', 0);
 
   useEffect(() => {
     if (!isMoving) {
@@ -211,6 +215,7 @@ const ChartTest = ({ isLandScape, setBalance, balance, bets, setBets }) => {
   useEffect(() => {
     if (reset) {
       fetchData();
+      setVerticalPosition(0);
       setGameOver(false);
       setReset(false);
       setIsMoving(true);
@@ -238,6 +243,7 @@ const ChartTest = ({ isLandScape, setBalance, balance, bets, setBets }) => {
 
   useEffect(() => {
     if (gameOver) {
+      // setImagePositionY(0)
       setGameOver(true);
       setHistory((prev) => {
         if (prev && Array.isArray(prev)) {
@@ -445,7 +451,7 @@ const ChartTest = ({ isLandScape, setBalance, balance, bets, setBets }) => {
                   width: "1.5rem",
                 }}
               />
-              INVESTORY 868.01
+              INVESTORY {thousandSeparator(investory)}
             </Box>
             <Box
               sx={{
@@ -467,7 +473,7 @@ const ChartTest = ({ isLandScape, setBalance, balance, bets, setBets }) => {
                   width: "1.5rem",
                 }}
               />
-              WINS 868.01
+              WINS {thousandSeparator(wins)}
             </Box>
             <Box
               sx={{
@@ -489,7 +495,7 @@ const ChartTest = ({ isLandScape, setBalance, balance, bets, setBets }) => {
                   width: "1.5rem",
                 }}
               />
-              LOSES 868.01
+              LOSES {thousandSeparator(loses)}
             </Box>
           </Box>
         )}
@@ -524,7 +530,7 @@ const ChartTest = ({ isLandScape, setBalance, balance, bets, setBets }) => {
                 width: "1.5rem",
               }}
             />
-            INVESTORY 868.01
+            INVESTORY {thousandSeparator(investory)}
           </Box>
           <Box
             sx={{
@@ -546,7 +552,7 @@ const ChartTest = ({ isLandScape, setBalance, balance, bets, setBets }) => {
                 width: "1.5rem",
               }}
             />
-            WINS 868.01
+            WINS {thousandSeparator(wins)}
           </Box>
           <Box
             sx={{
@@ -568,12 +574,24 @@ const ChartTest = ({ isLandScape, setBalance, balance, bets, setBets }) => {
                 width: "1.5rem",
               }}
             />
-            LOSES 868.01
+            LOSES {thousandSeparator(loses)}
           </Box>
         </Box>
       )}
-      <Footer isLandScape={isLandScape} gameOver={gameOver} setBalance={setBalance} balance={balance} currentValue={chart[chart.length - 1]?.y}
-      bets={bets} setBets={setBets}
+      <Footer
+        isLandScape={isLandScape}
+        gameOver={gameOver}
+        setBalance={setBalance}
+        balance={balance}
+        currentValue={chart[chart.length - 1]?.y}
+        bets={bets}
+        setBets={setBets}
+        investory={investory}
+        setInvestory={setInvestory}
+        wins={wins}
+        setWins={setWins}
+        loses={loses}
+        setLoses={setLoses}
       />
     </Box>
   );

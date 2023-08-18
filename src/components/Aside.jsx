@@ -23,38 +23,43 @@ const Aside = ({ isLandScape, bets }) => {
     },
   ];
 
+  const scrollBarStyle = {
+    "&::-webkit-scrollbar": {
+      width: "6px",
+    },
+    "&::-webkit-scrollbar-track": {
+      background: "transparent",
+    },
+    "&::-webkit-scrollbar-thumb": {
+      background: "#685AB0",
+      borderRadius: "5px",
+    },
+    "&::-webkit-scrollbar-thumb:hover": {
+      background: "#685AB09f",
+    },
+  };
+
+  const tableStyle = {
+    maxHeight: "80vh", // Postavite visinu koja vam odgovara
+    // width: "300px",
+    overflowY: "auto", // Omogućite skrolovanje po vertikali
+    display: "block",
+    ...scrollBarStyle,
+  };
+
+  const tableHeaderStyle = {
+    position: "sticky",
+    width: "110px",
+
+    top: 0,
+    zIndex: 1,
+    backgroundColor: "#3b3363", // Postavite pozadinu koja vam odgovara
+    ...scrollBarStyle,
+  };
+
   const tableHeaders = ["Time", "Bet", "Coeff.", "Cash out", "PF"];
 
-  const tableData = [
-    {
-      time: "17:26",
-      bet: "0.2",
-      coeff: "2.56 X",
-      cashOut: "0.25$",
-      pf: true,
-    },
-    {
-      time: "17:26",
-      bet: "0.2",
-      coeff: "2.56 X",
-      cashOut: "0.25$",
-      pf: true,
-    },
-    {
-      time: "17:26",
-      bet: "0.2",
-      coeff: "2.56 X",
-      cashOut: "0.25$",
-      pf: true,
-    },
-    {
-      time: "17:26",
-      bet: "0.2",
-      coeff: "2.56 X",
-      cashOut: "0.25$",
-      pf: true,
-    },
-  ];
+  const sortedBets = activeButton === "2" ? [...bets].sort((a, b) => parseFloat(b.cashOut) - parseFloat(a.cashOut)) : bets;
   return (
     <Box
       sx={{
@@ -113,10 +118,12 @@ const Aside = ({ isLandScape, bets }) => {
             "& td": {
               border: "none",
             },
+            ...tableStyle,
           }}
+          // style={tableStyle}
           // striped
         >
-          <thead>
+          <thead style={tableHeaderStyle}>
             <tr>
               {tableHeaders.map((header) => (
                 <th
@@ -133,65 +140,66 @@ const Aside = ({ isLandScape, bets }) => {
             </tr>
           </thead>
           <tbody>
-            {bets && bets.map((data, index) => (
-              <tr
-                key={index}
-                style={{
-                  backgroundColor: index % 2 === 0 ? "#4a407d" : "#3b3363",
-                  border: "2px solid transparent",
-                }}
-              >
-                <td
+            {bets &&
+              sortedBets.map((data, index) => (
+                <tr
+                  key={index}
                   style={{
-                    border: "none !important",
+                    backgroundColor: index % 2 === 0 ? "#4a407d" : "#3b3363",
+                    border: "2px solid transparent",
                   }}
                 >
-                  {String(new Date(data.time).getHours()).padStart(2,'0')}
-                  :
-                  {String(new Date(data.time).getMinutes()).padStart(2,'0')}
-                </td>
-                <td
-                  style={{
-                    textAlign: "center",
-                  }}
-                >
-                  {data?.bet && thousandSeparator(data?.bet)}
-                </td>
-                <td
-                  style={{
-                    textAlign: "center",
-                  }}
-                >
-                  {data?.coeff && thousandSeparator(data?.coeff)}
-                </td>
-                <td
-                  style={{
-                    textAlign: "center",
-                  }}
-                >
-                  {data?.cashOut && thousandSeparator(data?.cashOut)}
-                </td>
-                <td
-                  style={{
-                    textAlign: "center",
-                  }}
-                >
-                  {data?.profit ? (
-                    <GppGood 
-                    sx={{
-                      color: '#3eb89b'
+                  <td
+                    style={{
+                      border: "none !important",
+                      textAlign: "center",
                     }}
-                    />
-                  ) : (
-                    <GppBad
-                      sx={{
-                        color: "#ff3b65",
-                      }}
-                    />
-                  )}
-                </td>
-              </tr>
-            ))}
+                  >
+                    {String(new Date(data.time).getHours()).padStart(2, "0")}:
+                    {String(new Date(data.time).getMinutes()).padStart(2, "0")}
+                  </td>
+                  <td
+                    style={{
+                      textAlign: "center",
+                    }}
+                  >
+                    {data?.bet && thousandSeparator(data?.bet)}
+                  </td>
+                  <td
+                    style={{
+                      textAlign: "center",
+                    }}
+                  >
+                    {data?.coeff && thousandSeparator(data?.coeff)}
+                  </td>
+                  <td
+                    style={{
+                      textAlign: "center",
+                    }}
+                  >
+                    {data?.cashOut && thousandSeparator(data?.cashOut)}
+                  </td>
+                  <td
+                    style={{
+                      textAlign: "center",
+                    }}
+                  >
+                    {data?.profit ? (
+                      <GppGood
+                        sx={{
+                          color: "#3eb89b",
+                        }}
+                      />
+                    ) : (
+                      <GppBad
+                        sx={{
+                          color: "#ff3b65",
+                        }}
+                      />
+                    )}
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </Table>
       </Box>

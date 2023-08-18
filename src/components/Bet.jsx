@@ -9,7 +9,13 @@ const Bet = ({
   balance,
   currentValue,
   bets,
-  setBets
+  setBets,
+  investory,
+  setInvestory,
+  wins,
+  setWins,
+  loses,
+  setLoses,
 }) => {
   const [betAmount, setBetAmount] = useState(100);
   const [cashOutAmount, setCashOutAmount] = useState(1.6);
@@ -24,61 +30,79 @@ const Bet = ({
   //     }, [betAmount]);
 
   const bet = () => {
-    if (isBeting) {
-      setIsBeting(false);
-      setBalance(balance + betAmount);
+    if (betAmount > balance) {
+      alert("No no");
     } else {
-      setIsBeting(true);
-      setBalance(balance - betAmount);
+      if (isBeting) {
+        setIsBeting(false);
+        setBalance(balance + betAmount);
+        setInvestory((prev) => prev - betAmount);
+      } else {
+        setIsBeting(true);
+        setBalance(balance - betAmount);
+        setInvestory((prev) => prev + betAmount);
+      }
     }
   };
 
   const sell = () => {
     setIsSold(true);
     setBalance(balance + currentValue * betAmount);
-    setBets(prev => [
-      { 
+    setWins((prev) => prev + currentValue * betAmount);
+    setBets((prev) => [
+      {
         time: new Date().getTime(),
         bet: betAmount,
         coeff: currentValue,
         cashOut: currentValue * betAmount,
-        profit: true
+        profit: true,
       },
-      ...prev
+      ...prev,
     ]);
   };
 
   useEffect(() => {
-    if (isBeting && autoCashOut && !isSold && currentValue >= cashOutAmount) {
+    if (
+      isBeting &&
+      autoCashOut &&
+      !isSold &&
+      currentValue >= cashOutAmount &&
+      !gameOver
+    ) {
       setIsSold(true);
       setBalance(balance + cashOutAmount * betAmount);
-      setBets(prev => [
-        { 
+
+      setWins((prev) => prev + cashOutAmount * betAmount);
+
+      setBets((prev) => [
+        {
           time: new Date().getTime(),
           bet: betAmount,
           coeff: cashOutAmount,
           cashOut: cashOutAmount * betAmount,
-          profit: true
+          profit: true,
         },
-        ...prev
+        ...prev,
       ]);
     }
-  }, [isBeting, autoCashOut, isSold, currentValue, cashOutAmount]);
+  }, [isBeting, autoCashOut, isSold, currentValue, cashOutAmount, gameOver]);
 
   useEffect(() => {
     if (gameOver) {
       setIsBeting(false);
       setIsSold(false);
+
       if (isBeting && !isSold) {
-        setBets(prev => [
-          { 
+        setLoses((prev) => prev + betAmount);
+        setBets((prev) => [
+          {
             time: new Date().getTime(),
             bet: betAmount,
             coeff: 0,
             cashOut: 0,
-            profit: false
+            profit: false,
           },
-          ...prev
+          ...prev,
         ]);
       }
     }
@@ -114,6 +138,12 @@ const Bet = ({
             justifyContent: "space-between",
             gap: "0.5rem",
             width: "100%",
+            opacity: !gameOver || isBeting ? 0.6 : 1,
+            transition: "all 0.5",
+            "& *": {
+              cursor: !gameOver || isBeting ? "not-allowed" : "",
+            },
+
             // alignItems: "center",
           }}
         >
@@ -155,7 +185,7 @@ const Bet = ({
                     display: "flex",
                     justifyContent: "center",
                     alignItems: "center",
-                    cursor: "pointer",
+                    cursor: !gameOver || isBeting ? "not-allowed" : "pointer",
                   }}
                   onClick={() => {
                     setBetAmount((prev) => prev + 1);
@@ -192,11 +222,13 @@ const Bet = ({
                     display: "flex",
                     justifyContent: "center",
                     alignItems: "center",
-                    cursor: "pointer",
+                    cursor: !gameOver || isBeting ? "not-allowed" : "pointer",
                   }}
                   disabled={!gameOver || isBeting}
                   onClick={() => {
-                    setBetAmount((prev) => prev - 1);
+                    if (betAmount > 0) {
+                      setBetAmount((prev) => prev - 1);
+                    }
                   }}
                 >
                   <span
@@ -240,7 +272,7 @@ const Bet = ({
                     border: "1px solid #685ab0",
                     width: "100%",
                     background: "transparent",
-                    cursor: "pointer",
+                    cursor: !gameOver || isBeting ? "not-allowed" : "pointer",
                   }}
                   onClick={() => {
                     setBetAmount((prev) => prev + option);
@@ -265,6 +297,15 @@ const Bet = ({
               value={autoCashOut}
               onChange={() => setAutoCashOut(!autoCashOut)}
               disabled={!gameOver || isBeting}
+              sx={{
+                "& .mantine-Switch-track": {
+                  background: autoCashOut
+                    ? `#01EFB7 !important`
+                    : `gray !important`,
+                  border: "none",
+                  cursor: !gameOver || isBeting ? "not-allowed" : "pointer",
+                },
+              }}
             />
           </Box>
           <TextInput
@@ -304,8 +345,9 @@ const Bet = ({
                     display: "flex",
                     justifyContent: "center",
                     alignItems: "center",
-                    cursor: "pointer",
+                    cursor: !gameOver || isBeting ? "not-allowed" : "pointer",
                   }}
+                  disabled={!gameOver || isBeting}
                   onClick={() => {
                     setCashOutAmount((prev) =>
                       Number(Number(prev) + 0.1).toFixed(1)
@@ -341,12 +383,15 @@ const Bet = ({
                     display: "flex",
                     justifyContent: "center",
                     alignItems: "center",
-                    cursor: "pointer",
+                    cursor: !gameOver || isBeting ? "not-allowed" : "pointer",
                   }}
+                  disabled={!gameOver || isBeting}
                   onClick={() => {
-                    setCashOutAmount((prev) =>
-                      Number(Number(prev) - 0.1).toFixed(1)
-                    );
+                    if (cashOutAmount > 0) {
+                      setCashOutAmount((prev) =>
+                        Number(Number(prev) - 0.1).toFixed(1)
+                      );
+                    }
                   }}
                 >
                   <span
@@ -375,13 +420,19 @@ const Bet = ({
         </Box>
         <Button
           sx={{
-            backgroundImage:
-              "linear-gradient(180deg, #00FCC1 5.00%, #008563 93.00%)",
+            backgroundImage: gameOver
+              ? isBeting
+                ? "linear-gradient(180deg, #00c1fc 5.00%, #006385 93.00%)"
+                : "linear-gradient(180deg, #00FCC1 5.00%, #008563 93.00%)"
+              : isBeting
+              ? "linear-gradient(180deg, #FF0050 5.00%, #880031 93.00%)"
+              : "linear-gradient(180deg, #00FCC1 5.00%, #008563 93.00%)",
             width: "100%",
             minHeight: "10rem",
             fontSize: "2.5rem",
             borderRadius: "0.5rem",
             display: "block",
+            transition: "all 0.5s ",
             // flex: 1,
             //   margin: "2rem",
           }}
