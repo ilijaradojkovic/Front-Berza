@@ -13,9 +13,19 @@ import Footer from "./Footer";
 import History from "./History";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { thousandSeparator } from "../helpers/formatNumbers";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from "recharts";
 
-const ChartTest = ({ isLandScape, setBalance, balance, bets, setBets }) => {
-  const [chart, setChart] = useState([{ x: 1, y: 1 }]);
+const RechartsChart = ({ isLandScape, setBalance, balance, bets, setBets }) => {
+  const [chart, setChart] = useState([{ x: 0, y: 0 }]);
   const [fetchedData, setFetchedData] = useState(null);
   const { width, height } = useViewportSize();
   const [isPlaying, setIsPlaying] = useState(false);
@@ -42,15 +52,15 @@ const ChartTest = ({ isLandScape, setBalance, balance, bets, setBets }) => {
   // const fetchData = async () => {
   //   // Simuliranje kašnjenja
   //   await new Promise(resolve => setTimeout(resolve, 1000));
-  
+
   //   // Početna vrednost i korak
   //   let currentValue = 1.1;
   //   let step = 0.05;
   //   const min = 1.1;
-  
+
   //   // Nasumična dužina niza (npr. između 30 i 120)
   //   const randomLength = Math.floor(Math.random() * 91) + 30;
-    
+
   //   // Generisanje niza
   //   const data = [];
   //   for (let i = 0; i < randomLength; i++) {
@@ -58,27 +68,25 @@ const ChartTest = ({ isLandScape, setBalance, balance, bets, setBets }) => {
   //     if (Math.random() > 0.9) {
   //       step = -step;
   //     }
-  
+
   //     // Dodavanje trenutne vrednosti u niz
   //     data.push(parseFloat(currentValue.toFixed(1)));
-  
+
   //     // Ažuriranje trenutne vrednosti
   //     currentValue += step;
-  
+
   //     // Provera za minimum
   //     if (currentValue < min) {
   //       currentValue = min;
   //       step = Math.abs(step);
   //     }
   //   }
-  
+
   //   console.log(data);
-  
+
   //   // Postavljanje podataka
   //   setFetchedData(data);
   // };
-  
-  
 
   useEffect(() => {
     fetchData();
@@ -194,9 +202,9 @@ const ChartTest = ({ isLandScape, setBalance, balance, bets, setBets }) => {
   const [gameOver, setGameOver] = useState(false);
   const [reset, setReset] = useState(false);
   const [ticker, setTicker] = useState(10);
-  const [investory, setInvestory] = useLocalStorage('investory', 0);
-  const [wins, setWins] = useLocalStorage('wins', 0);
-  const [loses, setLoses] = useLocalStorage('loses', 0);
+  const [investory, setInvestory] = useLocalStorage("investory", 0);
+  const [wins, setWins] = useLocalStorage("wins", 0);
+  const [loses, setLoses] = useLocalStorage("loses", 0);
 
   useEffect(() => {
     if (!isMoving) {
@@ -330,7 +338,7 @@ const ChartTest = ({ isLandScape, setBalance, balance, bets, setBets }) => {
             position: "relative",
           }}
         >
-          <ReactApexChart
+          {/* <ReactApexChart
             ref={chartRef}
             options={{
               chart: {
@@ -427,7 +435,27 @@ const ChartTest = ({ isLandScape, setBalance, balance, bets, setBets }) => {
             type="line"
             height={isLandScape ? height / 2.27 : "auto"}
             width={isLandScape ? width / 1.4 : width / 1.1}
-          />
+          /> */}
+          <ResponsiveContainer
+            width={isLandScape ? width / 1.4 : width / 1.1}
+            height={isLandScape ? height / 2.27 : "auto"}
+          >
+            <LineChart
+              data={chart}
+              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            >
+              <XAxis dataKey="x" />
+              <YAxis 
+              domain={[10, getHighestY() + 1]}
+              />
+              <Line
+                type="monotone"
+                dataKey="y"
+                stroke="#8884d8"
+                activeDot={{ r: 6 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
           <Box
             sx={{
               position: "absolute",
@@ -639,4 +667,4 @@ const ChartTest = ({ isLandScape, setBalance, balance, bets, setBets }) => {
   );
 };
 
-export default ChartTest;
+export default RechartsChart;

@@ -43,7 +43,7 @@ const Aside = ({ isLandScape, bets }) => {
     maxHeight: "80vh", // Postavite visinu koja vam odgovara
     // width: "300px",
     overflowY: "auto", // Omogućite skrolovanje po vertikali
-    display: "block",
+    display: isLandScape ? "block" : "table",
     ...scrollBarStyle,
   };
 

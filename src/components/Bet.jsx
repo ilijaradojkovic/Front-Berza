@@ -136,7 +136,7 @@ const Bet = ({
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
-            gap: "0.5rem",
+            gap: isLandScape ? "0.5rem" : "0.3rem",
             width: "100%",
             opacity: !gameOver || isBeting ? 0.6 : 1,
             transition: "all 0.5",
@@ -258,7 +258,7 @@ const Bet = ({
             sx={{
               display: "flex",
               justifyContent: "space-between",
-              gap: "1rem",
+              gap: isLandScape ? "1rem" : "0.3rem",
             }}
           >
             {options.map((option) => {
@@ -273,6 +273,8 @@ const Bet = ({
                     width: "100%",
                     background: "transparent",
                     cursor: !gameOver || isBeting ? "not-allowed" : "pointer",
+                    whiteSpace: "nowrap",
+                    borderRadius: "4px",
                   }}
                   onClick={() => {
                     setBetAmount((prev) => prev + option);
@@ -296,6 +298,7 @@ const Bet = ({
               color="ocean-blue"
               value={autoCashOut}
               onChange={() => setAutoCashOut(!autoCashOut)}
+              size="xs"
               disabled={!gameOver || isBeting}
               sx={{
                 "& .mantine-Switch-track": {
@@ -422,17 +425,21 @@ const Bet = ({
           sx={{
             backgroundImage: gameOver
               ? isBeting
-                ? "linear-gradient(180deg, #00c1fc 5.00%, #006385 93.00%)"
-                : "linear-gradient(180deg, #00FCC1 5.00%, #008563 93.00%)"
+                ? "linear-gradient(180deg, #00c1fc 5.00%, #006385 92.15%)"
+                : "linear-gradient(180deg, #00FCC1 5.00%, #008563 92.15%)"
               : isBeting
-              ? "linear-gradient(180deg, #FF0050 5.00%, #880031 93.00%)"
-              : "linear-gradient(180deg, #00FCC1 5.00%, #008563 93.00%)",
+              ? "linear-gradient(180deg, #FF0050 5.00%, #880031 92.15%)"
+              : "linear-gradient(180deg, #00FCC1 5.00%, #008563 92.15%)",
             width: "100%",
-            minHeight: "10rem",
+            minHeight: "9rem",
+            height: "100%",
             fontSize: "2.5rem",
-            borderRadius: "0.5rem",
+            borderRadius: "0.3rem",
             display: "block",
             transition: "all 0.5s ",
+            border: "none",
+            outline: "none",
+            filter: " drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))",
             // flex: 1,
             //   margin: "2rem",
           }}

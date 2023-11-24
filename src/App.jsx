@@ -11,6 +11,10 @@ import { MantineProvider } from "@mantine/core";
 import Navbar from "./components/Navbar";
 import {  useViewportSize } from "@mantine/hooks";
 import { useLocalStorage } from "./hooks/useLocalStorage";
+import KonvaChart from "./components/KonvaChart";
+import PhaserGame from "./components/PhaserGame";
+import RechartsChart from "./components/RechartsChart";
+import RechartsChart2 from "./components/RechartsChart2";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -57,8 +61,6 @@ function App() {
           ],
         },
       }}
-      // withGlobalStyles
-      // withNormalizeCSS
     >
       <Box
         sx={{
@@ -67,7 +69,7 @@ function App() {
           padding: isLandScape ? "2rem" : "1rem",
           height: isLandScape ? window.innerHeight : "auto",
           width: window.innerWidth,
-          overflow: "hidden",
+          // overflow: "hidden",
         }}
       >
         <Navbar isLandScape={isLandScape} balance={balance} />
@@ -80,7 +82,16 @@ function App() {
           }}
         >
           <Aside isLandScape={isLandScape} bets={bets}/>
-          <ChartTest start={start} isLandScape={isLandScape} setBalance={setBalance} balance={balance} bets={bets} setBets={setBets}/>
+          <Box sx={{
+            display: "flex",
+            flexDirection: "column",
+          }}>
+          {/* <ChartTest start={start} isLandScape={isLandScape} setBalance={setBalance} balance={balance} bets={bets} setBets={setBets}/> */}
+          {/* <RechartsChart start={start} isLandScape={isLandScape} setBalance={setBalance} balance={balance} bets={bets} setBets={setBets}/> */}
+          {/* <KonvaChart start={start} isLandScape={isLandScape} setBalance={setBalance} balance={balance} bets={bets} setBets={setBets}/> */}
+          {/* <PhaserGame isLandScape={isLandScape}/> */}
+          <RechartsChart2 start={start} isLandScape={isLandScape} setBalance={setBalance} balance={balance} bets={bets} setBets={setBets}/>
+          </Box>
         </Box>
       </Box>
     </MantineProvider>
