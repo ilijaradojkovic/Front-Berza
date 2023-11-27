@@ -16,6 +16,7 @@ const Bet = ({
   setWins,
   loses,
   setLoses,
+  lottieRef,
 }) => {
   const [betAmount, setBetAmount] = useState(100);
   const [cashOutAmount, setCashOutAmount] = useState(1.6);
@@ -107,6 +108,17 @@ const Bet = ({
       }
     }
   }, [gameOver, isSold]);
+
+  useEffect(() => {
+    if (lottieRef?.current) {
+    if (isSold ) {
+      lottieRef.current.play();
+    } 
+    else {
+      lottieRef.current.stop();
+    }
+  }
+  }, [isSold]);
 
   return (
     <Box

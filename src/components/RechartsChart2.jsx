@@ -15,29 +15,90 @@ import {
   Line,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
   ResponsiveContainer,
-  Customized,
+  Scatter,
+  ScatterChart,
+  ComposedChart,
 } from "recharts";
+import History from "./History";
+import Footer from "./Footer";
+import myLottieAnimation from "../assets/lottie/animation4.json";
+import Lottie, { useLottieInteractivity } from "lottie-react";
+import lottie from "lottie-web";
+import confetti from "../assets/lottie/confetti.json";
+import coins from "../assets/lottie/coins.json";
+import money from "../assets/lottie/money.json";
 
-const CustomDot = (props) => {
-    const { cx, cy, payload, data } = props;
-  
-    if (data.indexOf(payload) === data.length - 1) {
-        console.log(payload)
-      return (
-        <svg>
-          <image x={cx - 10} y={cy - 10} width={20} height={20} href={emoji} />
-        </svg>
-      );
+const CustomDot = ({ x, y, value, isLandScape, gameOver }) => {
+  const animContainer = useRef(null);
+  const anim = useRef(null);
+  const prevValue = useRef(value);
+
+  const [isIncreasing, setIsIncreasing] = useState(false);
+
+  useEffect(() => {
+    anim.current = lottie.loadAnimation({
+      container: animContainer.current,
+      renderer: "svg",
+      loop: true,
+      autoplay: true,
+      rendererSettings: {
+        preserveAspectRatio: "xMidYMid slice",
+      },
+      animationData: myLottieAnimation,
+    });
+
+    return () => anim.current.destroy();
+  }, []);
+
+  useEffect(() => {
+    if (value > prevValue.current) {
+      setIsIncreasing(true);
+    } else if (value < prevValue.current) {
+      setIsIncreasing(false);
     }
-    console.log(payload)
-  
-    return null;
-  };
-  
+    prevValue.current = value;
+  }, [value]);
+
+  useEffect(() => {
+    if (isIncreasing) {
+      anim.current.playSegments([5, 22], true);
+    } else {
+      anim.current.playSegments([22, 55], true);
+    }
+  }, [isIncreasing]);
+
+  return (
+    <svg
+      x={isLandScape ? x - 30 : x - 10}
+      y={isLandScape ? y - 20 : y - 10}
+      width={isLandScape ? 50 : 30}
+      height={isLandScape ? 50 : 30}
+      transform={`scale(2)`}
+      style={{
+        overflow: "visible !important",
+      }}
+    >
+      <foreignObject
+        width="100%"
+        height="100%"
+        transform={`scale(${gameOver ? 1.5 : 1})`}
+        style={{
+          translate: `${gameOver ? 1.5 : 1}}`,
+          transition: "all 1.5s ease-in-out 0.2s",
+          transformOrigin: "center",
+        }}
+      >
+        <div
+          ref={animContainer}
+          style={{
+            overflow: "visible !important",
+          }}
+        />
+      </foreignObject>
+    </svg>
+  );
+};
 
 const RechartsChart2 = ({
   isLandScape,
@@ -50,13 +111,12 @@ const RechartsChart2 = ({
   const [fetchedData, setFetchedData] = useState(null);
   const { width, height } = useViewportSize();
   const [isPlaying, setIsPlaying] = useState(false);
-  const [verticalPosition, setVerticalPosition] = useState(1);
 
   const apiUrl = "http://157.230.107.88:8001/crypto-run";
 
   const fetchData = async () => {
     const res = await axios.get(apiUrl);
-    console.log(res.data);
+
     if (res.data.length < 2) {
       fetchData();
     } else {
@@ -68,14 +128,12 @@ const RechartsChart2 = ({
     fetchData();
   }, []);
 
-  //   useEffect(() => {
-  //     if (fetchedData) {
-  //       const formattedData = fetchedData.map((item, index) => {
-  //         return { x: index, y: item };
-  //       });
-  //       setChart(formattedData);
-  //     }
-  //   }, [fetchedData]);
+  const [maxY, setMaxY] = useState(0);
+
+  const updateMaxY = (newData) => {
+    const newYMax = Math.max(...newData.map((d) => d.y));
+    setMaxY((prevMaxY) => Math.max(prevMaxY, newYMax));
+  };
 
   const updateChart = () => {
     if (fetchedData && fetchedData.length > 0) {
@@ -83,16 +141,18 @@ const RechartsChart2 = ({
         setChart((currentData) => {
           const nextIndex = currentData.length;
           if (nextIndex < fetchedData.length) {
-            return [
+            const newData = [
               ...currentData,
               { x: nextIndex, y: fetchedData[nextIndex] },
             ];
+            updateMaxY(newData); // Ažuriranje maxY
+            return newData;
           } else {
             clearInterval(intervalId);
             return currentData;
           }
         });
-      }, 100); // Dodaje novu tačku svaku sekundu
+      }, 80);
     }
   };
 
@@ -100,20 +160,122 @@ const RechartsChart2 = ({
     updateChart();
   }, [fetchedData]);
 
-  const bgMoving = keyframes({
-    "0%": {
-      backgroundPositionX: `0%`,
-    },
-    "100%": {
-      backgroundPositionX: `-100%`,
-    },
-  });
-
   const [gameOver, setGameOver] = useState(false);
   const [ticker, setTicker] = useState(10);
   const [investory, setInvestory] = useLocalStorage("investory", 0);
   const [wins, setWins] = useLocalStorage("wins", 0);
   const [loses, setLoses] = useLocalStorage("loses", 0);
+
+  const [reset, setReset] = useState(false);
+
+  const [history, setHistory] = useLocalStorage("history", []);
+
+  // set game over
+  useEffect(() => {
+    if (chart?.length === fetchedData?.length) {
+      setGameOver(true);
+    }
+  }, [chart]);
+
+  // set ticker
+  useEffect(() => {
+    if (gameOver && ticker > 0) {
+      // setChart([{ x: 1, y: 1 }]);
+      const interval = setInterval(() => {
+        setTicker((prev) => {
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+    if (ticker === 0) {
+      const timeout = setTimeout(() => {
+        setTicker(10);
+      }, 1500);
+    }
+  }, [gameOver, ticker, fetchedData, chart]);
+
+  useEffect(() => {
+    if (ticker === 0) {
+      setChart([{ x: 1, y: 1 }]);
+      setReset(true);
+      setGameOver(false);
+    }
+  }, [ticker]);
+
+  useEffect(() => {
+    if (reset) {
+      setChart([]);
+      setReset(false);
+      fetchData();
+      setMaxY(2);
+    }
+  }, [reset]);
+
+  useEffect(() => {
+    if (gameOver) {
+      // setImagePositionY(0)
+      setGameOver(true);
+      setHistory((prev) => {
+        if (prev && Array.isArray(prev)) {
+          return [chart[chart.length - 1].y, ...prev]; // Verovatno ste mislili na `chart.length - 1`
+        }
+        return [chart[chart.length - 1].y]; // Ako `prev` nije iterabilno, vrati novi niz
+      });
+    }
+  }, [gameOver]);
+
+  // is playing
+  useEffect(() => {
+    if (gameOver) {
+      setIsPlaying(false);
+    } else {
+      if (chart.length > 50) {
+        setIsPlaying(true);
+      }
+    }
+  }, [gameOver, chart]);
+
+  const bgMoving = keyframes({
+    "0%": {
+      backgroundPositionX: `0%`,
+      backgroundPositionY: `0%`,
+    },
+    "100%": {
+      backgroundPositionX: `-100%`,
+      // backgroundPositionY: chart[chart.length - 1]?.y > chart[chart.length - 2]?.y ? `100%` : `-100%`,
+    },
+  });
+
+  const confettiRef = useRef(null);
+
+  const coinsRef = useRef(null);
+  const coins2Ref = useRef(null);
+
+  const moneyRef = useRef(null);
+  const lastDivisibleByThree = useRef(null); // Ref za praćenje poslednjeg broja deljivog sa 3
+  
+  useEffect(() => {
+    if (moneyRef.current) {
+        moneyRef.current.stop();  // Zaustavite trenutnu animaciju
+        // moneyRef.current.play();  // Ponovo pokrenite animaciju
+      }
+    const lastValue = chart[chart.length - 1]?.y.toFixed(0) || null; // Poslednja vrednost
+    if (lastValue && lastValue % 3 === 0 && lastValue !== lastDivisibleByThree.current) {
+        console.log("Deljivo sa 3");
+      moneyRef.current.play(); // Pokreni animaciju
+      lastDivisibleByThree.current = lastValue; // Ažuriraj ref sa novom vrednošću
+    }
+  }, [chart]); // Zavisnost od chart, kako biste reagovali na promene
+  
+
+  useEffect(() => {
+    if (gameOver) {
+      confettiRef.current.play();
+    } else {
+      confettiRef.current.stop();
+    }
+  }, [gameOver]);
 
   return (
     <Box
@@ -123,12 +285,13 @@ const RechartsChart2 = ({
         gap: "1rem",
       }}
     >
+      <History history={history} />
       <Box
         sx={{
           backgroundImage: `url(${graphbg})`,
           backgroundSize: " 50% auto",
           backgroundPositionX: `0%`,
-          backgroundPositionY: `${verticalPosition}%`,
+          backgroundPositionY: `0%`,
           backgroundAttachment: "fixed",
           transition: "all 0.1s",
           backgroundRepeat: "repeat",
@@ -140,24 +303,34 @@ const RechartsChart2 = ({
           padding: isLandScape ? "2.7rem" : "1rem",
           borderRadius: "0.5rem",
           boxShadow: "0 0 1rem rgba(0,0,0,0.2)",
-          animation: `${bgMoving} 3s linear infinite`,
+          animation: `${bgMoving} 4s linear infinite`,
           animationPlayState: isPlaying ? "running" : "paused",
         }}
       >
         <Box
           sx={{
             position: "relative",
+            overflow: "visible !important",
           }}
         >
           <ResponsiveContainer
             width={isLandScape ? width / 1.4 : width / 1.1}
-            height={isLandScape ? height / 2.27 : "auto"}
+            height={isLandScape ? height / 2.27 : height / 3.5}
+            style={{
+              overflow: "visible !important",
+            }}
           >
-            <LineChart
-              width={730}
-              height={250}
+            <ComposedChart
               data={chart}
-              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              margin={{
+                top: 5,
+                right: isLandScape ? 30 : 20,
+                left: isLandScape ? 20 : 0,
+                bottom: isLandScape ? 5 : 0,
+              }}
+              style={{
+                overflow: "visible !important",
+              }}
             >
               <defs>
                 <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
@@ -165,10 +338,9 @@ const RechartsChart2 = ({
                   <stop offset="95%" stopColor="#FF003c" stopOpacity={1} />
                 </linearGradient>
               </defs>
-              <XAxis dataKey="x" type="number" domain={[0, 30]} />
-
+              <XAxis dataKey="x" type="number" domain={[0, 50]} />
               <YAxis
-                domain={[0, "dataMax + 1"]}
+                domain={[0, maxY + 1]}
                 tickFormatter={(value) => value.toFixed(1)}
               />
               <Line
@@ -176,24 +348,91 @@ const RechartsChart2 = ({
                 dataKey="y"
                 stroke="url(#colorUv)"
                 isAnimationActive={true}
-                animationDuration={100} // Trajanje u milisekundama
+                animationDuration={100}
                 animationEasing="ease-out"
-                // dot={false}
                 strokeWidth={3}
-                dot={<CustomDot data={chart} />}
+                dot={false}
               >
                 {" "}
-                {/* <Customized component={<CustomDot data={chart} />} /> */}
               </Line>
-            </LineChart>
+              <Scatter
+                dataKey="y"
+                data={[
+                  {
+                    x: chart[chart.length - 1]?.x,
+                    y: chart[chart.length - 1]?.y,
+                  },
+                ]}
+                style={{
+                  rotate: 45,
+                }}
+                shape={
+                  <CustomDot
+                    value={chart[chart.length - 1]?.y}
+                    isLandScape={isLandScape}
+                    gameOver={gameOver}
+                  />
+                }
+                isAnimationActive={false}
+              />
+            </ComposedChart>
           </ResponsiveContainer>
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: `translate(-50%, -50%)`,
+              opacity: gameOver ? 1 : 0,
+            }}
+          >
+            <Lottie animationData={confetti} lottieRef={confettiRef} />
+          </Box>
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: `translate(-50%, -50%)`,
+              width: "500px",
+            //   opacity: gameOver ? 1 : 0,
+            }}
+          >
+            <Lottie animationData={money} lottieRef={moneyRef} 
+            loop={false}
+            />
+          </Box>
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: "0%",
+              left: "36%",
+              transform: `translate(-50%, 50%)`,
+              width: "200px",
+              //   opacity: gameOver ? 1 : 0,
+            }}
+          >
+            <Lottie animationData={coins} lottieRef={coinsRef} loop={false} />
+          </Box>
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: "0%",
+              left: "88%",
+              transform: `translate(-50%, 50%)`,
+              width: "200px",
+              //   opacity: gameOver ? 1 : 0,
+            }}
+          >
+            <Lottie animationData={coins} lottieRef={coins2Ref} loop={false} />
+          </Box>
           <Box
             sx={{
               position: "absolute",
               top: isLandScape ? "20%" : "40%",
               left: "50%",
               transform: `translate(-50%, -50%)`,
-              fontSize: isLandScape ? "3rem" : "2.5rem",
+              fontSize: isLandScape ? "3rem" : "2rem",
               fontWeight: "bold",
               zIndex: 100,
               display: "flex",
@@ -301,6 +540,23 @@ const RechartsChart2 = ({
           </Box>
         )}
       </Box>
+      <Footer
+        isLandScape={isLandScape}
+        gameOver={gameOver}
+        setBalance={setBalance}
+        balance={balance}
+        currentValue={chart[chart.length - 1]?.y}
+        bets={bets}
+        setBets={setBets}
+        investory={investory}
+        setInvestory={setInvestory}
+        wins={wins}
+        setWins={setWins}
+        loses={loses}
+        setLoses={setLoses}
+        coinsRef={coinsRef}
+        coins2Ref={coins2Ref}
+      />
     </Box>
   );
 };
