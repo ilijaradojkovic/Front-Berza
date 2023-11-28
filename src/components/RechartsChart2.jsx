@@ -112,7 +112,7 @@ const RechartsChart2 = ({
   const { width, height } = useViewportSize();
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const apiUrl = "http://157.230.107.88:8001/crypto-run";
+  const apiUrl = "/api";
 
   const fetchData = async () => {
     const res = await axios.get(apiUrl);
@@ -253,27 +253,44 @@ const RechartsChart2 = ({
   const coins2Ref = useRef(null);
 
   const moneyRef = useRef(null);
-  const lastDivisibleByThree = useRef(null); // Ref za praćenje poslednjeg broja deljivog sa 3
-  
-  useEffect(() => {
-    if (moneyRef.current) {
-        moneyRef.current.stop();  // Zaustavite trenutnu animaciju
-        // moneyRef.current.play();  // Ponovo pokrenite animaciju
-      }
-    const lastValue = chart[chart.length - 1]?.y.toFixed(0) || null; // Poslednja vrednost
-    if (lastValue && lastValue % 3 === 0 && lastValue !== lastDivisibleByThree.current) {
-        console.log("Deljivo sa 3");
-      moneyRef.current.play(); // Pokreni animaciju
-      lastDivisibleByThree.current = lastValue; // Ažuriraj ref sa novom vrednošću
-    }
-  }, [chart]); // Zavisnost od chart, kako biste reagovali na promene
-  
 
   useEffect(() => {
     if (gameOver) {
       confettiRef.current.play();
     } else {
       confettiRef.current.stop();
+    }
+  }, [gameOver]);
+
+  const [playMoney, setPlayMoney] = useState(false);
+  const [playIfHigher, setPlayIfHigher] = useState(5);
+
+  useEffect(() => {
+    const currentValue = chart[chart.length - 1]?.y.toFixed(0);
+
+    if (currentValue > playIfHigher) {
+      setPlayMoney(true);
+      setPlayIfHigher((prev) => prev + prev);
+    } 
+    // else {
+    //   setPlayMoney(false);
+    // }
+  }, [chart]);
+
+  useEffect(() => {
+    if (playMoney) {
+      moneyRef.current.play();
+      console.log("play");
+    } else {
+      const timeout = setTimeout(() => {
+        moneyRef.current.stop();
+      }, 2000);
+    }
+  }, [playMoney]);
+
+  useEffect(() => {
+    if (gameOver) {
+      setPlayIfHigher(5);
     }
   }, [gameOver]);
 
@@ -394,12 +411,18 @@ const RechartsChart2 = ({
               top: "50%",
               left: "50%",
               transform: `translate(-50%, -50%)`,
-              width: "500px",
-            //   opacity: gameOver ? 1 : 0,
+              width: `min(80%, 500px)`,
+              opacity: playMoney ? 1 : 0,
+              transition: playMoney ? "all 0.1s" : "all 5s",
             }}
           >
-            <Lottie animationData={money} lottieRef={moneyRef} 
-            loop={false}
+            <Lottie
+              animationData={money}
+              lottieRef={moneyRef}
+              loop={false}
+              onComplete={() => {
+                setPlayMoney(false);
+              }}
             />
           </Box>
           <Box
@@ -447,7 +470,8 @@ const RechartsChart2 = ({
                 transition: "all 0.5s",
               }}
             >
-              {{ ...chart[chart.length - 1] }?.y?.toFixed(2)}x
+              {{ ...chart[chart.length - 1] }?.y?.toFixed(2)}
+              {chart.length > 1 ? "x" : ""}
             </Box>
             <Box
               sx={{

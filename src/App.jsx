@@ -69,7 +69,7 @@ function App() {
           padding: isLandScape ? "2rem" : "1rem",
           height: isLandScape ? window.innerHeight : "auto",
           width: window.innerWidth,
-          // overflow: "hidden",
+          overflow: "hidden",
         }}
       >
         <Navbar isLandScape={isLandScape} balance={balance} />
