@@ -2,7 +2,7 @@ import { Box } from "@mantine/core";
 import React from "react";
 import Bet from "./Bet";
 
-const Footer = ({ setStart, isLandScape, gameOver, setBalance, balance, currentValue, bets, setBets, investory, setInvestory, wins, setWins, loses, setLoses, coinsRef, coins2Ref  }) => {
+const Footer = ({ setStart, isLandScape, gameOver, setBalance, balance, currentValue, bets, setBets, investory, setInvestory, wins, setWins, loses, setLoses, coinsRef, coins2Ref, audioPermission  }) => {
   return (
     <Box
       sx={{
@@ -28,6 +28,7 @@ const Footer = ({ setStart, isLandScape, gameOver, setBalance, balance, currentV
         loses={loses}
         setLoses={setLoses}
         lottieRef={coinsRef}
+        audioPermission={audioPermission}
       />
       <Bet
         setStart={setStart}
@@ -45,6 +46,7 @@ const Footer = ({ setStart, isLandScape, gameOver, setBalance, balance, currentV
         loses={loses}
         setLoses={setLoses}
         lottieRef={coins2Ref}
+        audioPermission={audioPermission}
       />
     </Box>
   );

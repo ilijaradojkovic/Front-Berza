@@ -9,10 +9,10 @@ import Footer from "./components/Footer";
 import History from "./components/History";
 import { MantineProvider } from "@mantine/core";
 import Navbar from "./components/Navbar";
-import {  useViewportSize } from "@mantine/hooks";
+import { useViewportSize } from "@mantine/hooks";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import KonvaChart from "./components/KonvaChart";
-import PhaserGame from "./components/PhaserGame";
+// import PhaserGame from "./components/PhaserGame";
 import RechartsChart from "./components/RechartsChart";
 import RechartsChart2 from "./components/RechartsChart2";
 
@@ -20,11 +20,13 @@ function App() {
   const [count, setCount] = useState(0);
   const [start, setStart] = useState(false);
   const [isLandScape, setIsLandscape] = useState(false);
-  const [balance, setBalance] = useLocalStorage("balance",10000);
+  const [balance, setBalance] = useLocalStorage("balance", 10000);
 
   const { width, height } = useViewportSize();
 
-  const [bets, setBets] = useLocalStorage("bets",[])
+  const [bets, setBets] = useLocalStorage("bets", []);
+
+  const [audioPermission, setAudioPermission] = useState(false);
 
   useEffect(() => {
     if (width > height) {
@@ -72,7 +74,12 @@ function App() {
           overflow: "hidden",
         }}
       >
-        <Navbar isLandScape={isLandScape} balance={balance} />
+        <Navbar
+          isLandScape={isLandScape}
+          balance={balance}
+          setAudioPermission={setAudioPermission}
+          audioPermission={audioPermission}
+        />
         <Box
           sx={{
             display: "flex",
@@ -81,16 +88,26 @@ function App() {
             justifyContent: "space-between",
           }}
         >
-          <Aside isLandScape={isLandScape} bets={bets}/>
-          <Box sx={{
-            display: "flex",
-            flexDirection: "column",
-          }}>
-          {/* <ChartTest start={start} isLandScape={isLandScape} setBalance={setBalance} balance={balance} bets={bets} setBets={setBets}/> */}
-          {/* <RechartsChart start={start} isLandScape={isLandScape} setBalance={setBalance} balance={balance} bets={bets} setBets={setBets}/> */}
-          {/* <KonvaChart start={start} isLandScape={isLandScape} setBalance={setBalance} balance={balance} bets={bets} setBets={setBets}/> */}
-          {/* <PhaserGame isLandScape={isLandScape}/> */}
-          <RechartsChart2 start={start} isLandScape={isLandScape} setBalance={setBalance} balance={balance} bets={bets} setBets={setBets}/>
+          <Aside isLandScape={isLandScape} bets={bets} />
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {/* <ChartTest start={start} isLandScape={isLandScape} setBalance={setBalance} balance={balance} bets={bets} setBets={setBets}/> */}
+            {/* <RechartsChart start={start} isLandScape={isLandScape} setBalance={setBalance} balance={balance} bets={bets} setBets={setBets}/> */}
+            {/* <KonvaChart start={start} isLandScape={isLandScape} setBalance={setBalance} balance={balance} bets={bets} setBets={setBets}/> */}
+            {/* <PhaserGame isLandScape={isLandScape}/> */}
+            <RechartsChart2
+              start={start}
+              isLandScape={isLandScape}
+              setBalance={setBalance}
+              balance={balance}
+              bets={bets}
+              setBets={setBets}
+              audioPermission={audioPermission}
+            />
           </Box>
         </Box>
       </Box>

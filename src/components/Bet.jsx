@@ -1,5 +1,6 @@
 import { Box, Button, Switch, Text, TextInput } from "@mantine/core";
 import React, { useEffect, useState } from "react";
+import success from "../assets/sounds/coins.wav";
 
 const Bet = ({
   setStart,
@@ -17,6 +18,7 @@ const Bet = ({
   loses,
   setLoses,
   lottieRef,
+  audioPermission,
 }) => {
   const [betAmount, setBetAmount] = useState(100);
   const [cashOutAmount, setCashOutAmount] = useState(1.6);
@@ -60,6 +62,10 @@ const Bet = ({
       },
       ...prev,
     ]);
+    const audio = new Audio(success);
+    if (audioPermission) {
+      audio.play();
+    }
   };
 
   useEffect(() => {
@@ -85,8 +91,20 @@ const Bet = ({
         },
         ...prev,
       ]);
+      // const audio = new Audio(success);
+      // if (audioPermission) {
+      //   audio.play();
+      // }
     }
-  }, [isBeting, autoCashOut, isSold, currentValue, cashOutAmount, gameOver]);
+  }, [
+    isBeting,
+    autoCashOut,
+    isSold,
+    currentValue,
+    cashOutAmount,
+    gameOver,
+    audioPermission,
+  ]);
 
   useEffect(() => {
     if (gameOver) {
@@ -111,13 +129,12 @@ const Bet = ({
 
   useEffect(() => {
     if (lottieRef?.current) {
-    if (isSold ) {
-      lottieRef.current.play();
-    } 
-    else {
-      lottieRef.current.stop();
+      if (isSold) {
+        lottieRef.current.play();
+      } else {
+        lottieRef.current.stop();
+      }
     }
-  }
   }, [isSold]);
 
   return (

@@ -23,40 +23,6 @@ const Aside = ({ isLandScape, bets }) => {
     },
   ];
 
-  const scrollBarStyle = {
-    "&::-webkit-scrollbar": {
-      width: "6px",
-    },
-    "&::-webkit-scrollbar-track": {
-      background: "transparent",
-    },
-    "&::-webkit-scrollbar-thumb": {
-      background: "#685AB0",
-      borderRadius: "5px",
-    },
-    "&::-webkit-scrollbar-thumb:hover": {
-      background: "#685AB09f",
-    },
-  };
-
-  const tableStyle = {
-    maxHeight: "78vh", // Postavite visinu koja vam odgovara
-    // width: "300px",
-    overflowY: "auto", // Omogućite skrolovanje po vertikali
-    display: isLandScape ? "block" : "table",
-    ...scrollBarStyle,
-  };
-
-  const tableHeaderStyle = {
-    position: "sticky",
-    width: "110px",
-
-    top: 0,
-    zIndex: 1,
-    backgroundColor: "#3b3363", // Postavite pozadinu koja vam odgovara
-    ...scrollBarStyle,
-  };
-
   const tableHeaders = ["Time", "Bet", "Coeff.", "Cash out", "PF"];
 
   const sortedBets = activeButton === "2" ? [...bets].sort((a, b) => parseFloat(b.cashOut) - parseFloat(a.cashOut)) : bets;
@@ -110,6 +76,10 @@ const Aside = ({ isLandScape, bets }) => {
         </Box>
         <Table
           sx={{
+            maxHeight: "78vh", // Postavite visinu koja vam odgovara
+            // width: "300px",
+            overflowY: "auto", // Omogućite skrolovanje po vertikali
+            display: isLandScape ? "block" : "table",
             color: "#ae9eff",
             border: "none",
             "& th": {
@@ -118,12 +88,45 @@ const Aside = ({ isLandScape, bets }) => {
             "& td": {
               border: "none",
             },
-            ...tableStyle,
+            "&::-webkit-scrollbar": {
+              width: "6px",
+            },
+            "::-webkit-scrollbar-track": {
+              background: "transparent",
+            },
+            "::-webkit-scrollbar-thumb": {
+              background: "#685AB0",
+              borderRadius: "5px",
+            },
+            "&::-webkit-scrollbar-thumb:hover": {
+              background: "#685AB09f",
+            },
+            // ...tableStyle,
           }}
           // style={tableStyle}
           // striped
         >
-          <thead style={tableHeaderStyle}>
+          <thead style={{
+            position: "sticky",
+            width: "110px",
+
+            top: 0,
+            zIndex: 1,
+            backgroundColor: "#3b3363", // Postavite pozadinu koja vam odgovara
+            // "&::-webkit-scrollbar": {
+            //   width: "6px",
+            // },
+            // "::-webkit-scrollbar-track": {
+            //   background: "transparent",
+            // },
+            // "::-webkit-scrollbar-thumb": {
+            //   background: "#685AB0",
+            //   borderRadius: "5px",
+            // },
+            // "&::-webkit-scrollbar-thumb:hover": {
+            //   background: "#685AB09f",
+            // },
+          }}>
             <tr>
               {tableHeaders.map((header) => (
                 <th

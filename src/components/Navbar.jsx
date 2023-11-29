@@ -10,7 +10,12 @@ import logout from "../assets/images/logout.png";
 import { Menu } from "@mui/icons-material";
 import { thousandSeparator } from "../helpers/formatNumbers";
 
-const Navbar = ({ isLandScape, balance }) => {
+const Navbar = ({
+  isLandScape,
+  balance,
+  setAudioPermission,
+  audioPermission,
+}) => {
   return (
     <Box
       sx={{
@@ -19,6 +24,8 @@ const Navbar = ({ isLandScape, balance }) => {
         justifyContent: "space-between",
         alignItems: "center",
         marginBottom: "1rem",
+        position: "relative",
+        zIndex: "1",
       }}
     >
       <img src={logo} alt="logo" />
@@ -100,15 +107,26 @@ const Navbar = ({ isLandScape, balance }) => {
               gap: "1rem",
             }}
           >
-            <img
-              src={sound}
-              alt="sound"
+            {/* <button
+              
               style={{
-                border: "1px solid #3F347D",
-                padding: "0.6rem",
-                objectFit: "contain",
+                border: "none",
+                outline: "none",
+                background: "transparent",
+                cursor: "pointer",
               }}
-            />
+            > */}
+              <img
+                src={sound}
+                alt="sound"
+                style={{
+                  // border: audioPermission ? "1px solid #3F347D" : "1px solid #3F347D08",
+                  border: "1px solid #3F347D",
+                  padding: "0.6rem",
+                  objectFit: "contain",
+                }}onClick={() => setAudioPermission(!audioPermission)}
+              />
+            {/* </button> */}
             <img
               src={settings}
               alt="settings"
@@ -169,7 +187,7 @@ const Navbar = ({ isLandScape, balance }) => {
           </Box>
         </>
       )}
-      {!isLandScape && <Menu/>}
+      {!isLandScape && <Menu />}
     </Box>
   );
 };

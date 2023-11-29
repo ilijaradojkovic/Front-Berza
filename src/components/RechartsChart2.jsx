@@ -28,28 +28,55 @@ import lottie from "lottie-web";
 import confetti from "../assets/lottie/confetti.json";
 import coins from "../assets/lottie/coins.json";
 import money from "../assets/lottie/money.json";
+import explosion from "../assets/lottie/explosion3.json";
+import fail from "../assets/sounds/boom.wav";
+import timer from "../assets/sounds/timer.wav";
 
-const CustomDot = ({ x, y, value, isLandScape, gameOver }) => {
+const CustomDot = ({ x, y, value, isLandScape, gameOver, audioPermission }) => {
   const animContainer = useRef(null);
   const anim = useRef(null);
   const prevValue = useRef(value);
 
   const [isIncreasing, setIsIncreasing] = useState(false);
 
+  const [falling, setFalling] = useState(false);
+
   useEffect(() => {
+    if (value < 1) {
+      setFalling(true);
+    } else {
+      setFalling(false);
+    }
+  }, [value]);
+
+  // useEffect(() => {
+  //   const audio = new Audio(fail);
+  //   if (falling && audioPermission) {
+  //     audio.play();
+  //   }
+  // }, [falling, audioPermission]);
+
+  useEffect(() => {
+    // Ako je igra završena, učitava se animacija eksplozije
+    const animationData = falling ? explosion : myLottieAnimation;
+    const loop = falling ? false : true;
+    const speed = falling ? 1 : 1;
+
     anim.current = lottie.loadAnimation({
       container: animContainer.current,
       renderer: "svg",
-      loop: true,
+      loop: loop,
+      // speed: speed,
       autoplay: true,
       rendererSettings: {
         preserveAspectRatio: "xMidYMid slice",
       },
-      animationData: myLottieAnimation,
+      animationData: animationData,
     });
+    anim.current.setSpeed(speed);
 
     return () => anim.current.destroy();
-  }, []);
+  }, [falling]);
 
   useEffect(() => {
     if (value > prevValue.current) {
@@ -70,7 +97,7 @@ const CustomDot = ({ x, y, value, isLandScape, gameOver }) => {
 
   return (
     <svg
-      x={isLandScape ? x - 30 : x - 10}
+      x={isLandScape ? (value < 1 ? x - 20 : x - 30) : x - 10}
       y={isLandScape ? y - 20 : y - 10}
       width={isLandScape ? 50 : 30}
       height={isLandScape ? 50 : 30}
@@ -82,10 +109,10 @@ const CustomDot = ({ x, y, value, isLandScape, gameOver }) => {
       <foreignObject
         width="100%"
         height="100%"
-        transform={`scale(${gameOver ? 1.5 : 1})`}
+        transform={`scale(${gameOver ? 2.5 : 1})`}
         style={{
           translate: `${gameOver ? 1.5 : 1}}`,
-          transition: "all 1.5s ease-in-out 0.2s",
+          transition: `all ${gameOver ? 1.5 : 0}s ease-in-out 0.2s`,
           transformOrigin: "center",
         }}
       >
@@ -106,9 +133,11 @@ const RechartsChart2 = ({
   balance,
   bets,
   setBets,
+  audioPermission,
 }) => {
   const [chart, setChart] = useState([]);
   const [fetchedData, setFetchedData] = useState(null);
+  const [lastValue, setLastValue] = useState(null); // Dodato
   const { width, height } = useViewportSize();
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -121,6 +150,7 @@ const RechartsChart2 = ({
       fetchData();
     } else {
       setFetchedData(res.data);
+      setLastValue(res.data[res.data.length - 1]); // Dodato
     }
   };
 
@@ -174,13 +204,32 @@ const RechartsChart2 = ({
   useEffect(() => {
     if (chart?.length === fetchedData?.length) {
       setGameOver(true);
+
+      let currentValue = chart[chart.length - 1].y;
+      const steps = 5; // Broj koraka u kojima će se smanjivati vrednost
+      const decrementAmount = currentValue / steps; // Količina smanjenja u svakom koraku
+      const intervalTime = 50 / steps; // Vreme između svakog koraka
+
+      const interval = setInterval(() => {
+        currentValue -= decrementAmount;
+        if (currentValue <= 0) {
+          clearInterval(interval);
+          currentValue = 0;
+        }
+
+        setChart((prev) => [
+          ...prev.slice(0, -1),
+          { x: prev[prev.length - 1].x, y: currentValue },
+        ]);
+      }, intervalTime);
+
+      return () => clearInterval(interval);
     }
-  }, [chart]);
+  }, [chart, fetchedData]);
 
   // set ticker
   useEffect(() => {
     if (gameOver && ticker > 0) {
-      // setChart([{ x: 1, y: 1 }]);
       const interval = setInterval(() => {
         setTicker((prev) => {
           return prev - 1;
@@ -193,15 +242,26 @@ const RechartsChart2 = ({
         setTicker(10);
       }, 1500);
     }
-  }, [gameOver, ticker, fetchedData, chart]);
+  }, [gameOver, ticker, fetchedData]);
 
   useEffect(() => {
+    // const audio = new Audio(timer);
     if (ticker === 0) {
       setChart([{ x: 1, y: 1 }]);
       setReset(true);
       setGameOver(false);
     }
   }, [ticker]);
+
+  // useEffect(() => {
+  //   const audio = new Audio(timer);
+  //   if (gameOver) {
+  //     audio.play();
+  //   } else {
+  //     audio.pause();
+  //     audio.currentTime = 0;
+  //   }
+  // }, [gameOver]);
 
   useEffect(() => {
     if (reset) {
@@ -218,9 +278,9 @@ const RechartsChart2 = ({
       setGameOver(true);
       setHistory((prev) => {
         if (prev && Array.isArray(prev)) {
-          return [chart[chart.length - 1].y, ...prev]; // Verovatno ste mislili na `chart.length - 1`
+          return [lastValue, ...prev]; // Verovatno ste mislili na `chart.length - 1`
         }
-        return [chart[chart.length - 1].y]; // Ako `prev` nije iterabilno, vrati novi niz
+        return [lastValue]; // Ako `prev` nije iterabilno, vrati novi niz
       });
     }
   }, [gameOver]);
@@ -254,13 +314,13 @@ const RechartsChart2 = ({
 
   const moneyRef = useRef(null);
 
-  useEffect(() => {
-    if (gameOver) {
-      confettiRef.current.play();
-    } else {
-      confettiRef.current.stop();
-    }
-  }, [gameOver]);
+  // useEffect(() => {
+  //   if (gameOver) {
+  //     confettiRef.current.play();
+  //   } else {
+  //     confettiRef.current.stop();
+  //   }
+  // }, [gameOver]);
 
   const [playMoney, setPlayMoney] = useState(false);
   const [playIfHigher, setPlayIfHigher] = useState(5);
@@ -271,7 +331,7 @@ const RechartsChart2 = ({
     if (currentValue > playIfHigher) {
       setPlayMoney(true);
       setPlayIfHigher((prev) => prev + prev);
-    } 
+    }
     // else {
     //   setPlayMoney(false);
     // }
@@ -329,72 +389,78 @@ const RechartsChart2 = ({
             position: "relative",
             overflow: "visible !important",
           }}
+          width={isLandScape ? width / 1.4 : width / 1.1}
+          height={isLandScape ? height / 2.27 : height / 3.5}
         >
-          <ResponsiveContainer
+          {/* <ResponsiveContainer
+            style={{
+              overflow: "visible !important",
+            }}
+            width="100%"
+            height="100%"
+          > */}
+          <ComposedChart
             width={isLandScape ? width / 1.4 : width / 1.1}
             height={isLandScape ? height / 2.27 : height / 3.5}
+            // width={300}
+            // height={300}
+            data={chart}
+            margin={{
+              top: 5,
+              right: isLandScape ? 30 : 20,
+              left: isLandScape ? 20 : 0,
+              bottom: isLandScape ? 5 : 0,
+            }}
             style={{
               overflow: "visible !important",
             }}
           >
-            <ComposedChart
-              data={chart}
-              margin={{
-                top: 5,
-                right: isLandScape ? 30 : 20,
-                left: isLandScape ? 20 : 0,
-                bottom: isLandScape ? 5 : 0,
-              }}
-              style={{
-                overflow: "visible !important",
-              }}
+            <defs>
+              <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#01f9e3" stopOpacity={1} />
+                <stop offset="95%" stopColor="#FF003c" stopOpacity={1} />
+              </linearGradient>
+            </defs>
+            <XAxis dataKey="x" type="number" domain={[0, 50]} />
+            <YAxis
+              domain={[0, maxY + 1]}
+              tickFormatter={(value) => value.toFixed(1)}
+            />
+            <Line
+              type="monotone"
+              dataKey="y"
+              stroke="url(#colorUv)"
+              isAnimationActive={true}
+              animationDuration={100}
+              animationEasing="ease-out"
+              strokeWidth={3}
+              dot={false}
             >
-              <defs>
-                <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#01f9e3" stopOpacity={1} />
-                  <stop offset="95%" stopColor="#FF003c" stopOpacity={1} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="x" type="number" domain={[0, 50]} />
-              <YAxis
-                domain={[0, maxY + 1]}
-                tickFormatter={(value) => value.toFixed(1)}
-              />
-              <Line
-                type="monotone"
-                dataKey="y"
-                stroke="url(#colorUv)"
-                isAnimationActive={true}
-                animationDuration={100}
-                animationEasing="ease-out"
-                strokeWidth={3}
-                dot={false}
-              >
-                {" "}
-              </Line>
-              <Scatter
-                dataKey="y"
-                data={[
-                  {
-                    x: chart[chart.length - 1]?.x,
-                    y: chart[chart.length - 1]?.y,
-                  },
-                ]}
-                style={{
-                  rotate: 45,
-                }}
-                shape={
-                  <CustomDot
-                    value={chart[chart.length - 1]?.y}
-                    isLandScape={isLandScape}
-                    gameOver={gameOver}
-                  />
-                }
-                isAnimationActive={false}
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
-          <Box
+              {" "}
+            </Line>
+            <Scatter
+              dataKey="y"
+              data={[
+                {
+                  x: chart[chart.length - 1]?.x,
+                  y: chart[chart.length - 1]?.y,
+                },
+              ]}
+              style={{
+                rotate: 45,
+              }}
+              shape={
+                <CustomDot
+                  value={chart[chart.length - 1]?.y}
+                  isLandScape={isLandScape}
+                  gameOver={gameOver}
+                />
+              }
+              isAnimationActive={false}
+            />
+          </ComposedChart>
+          {/* </ResponsiveContainer> */}
+          {/* <Box
             sx={{
               position: "absolute",
               top: "50%",
@@ -404,7 +470,7 @@ const RechartsChart2 = ({
             }}
           >
             <Lottie animationData={confetti} lottieRef={confettiRef} />
-          </Box>
+          </Box> */}
           <Box
             sx={{
               position: "absolute",
@@ -413,7 +479,7 @@ const RechartsChart2 = ({
               transform: `translate(-50%, -50%)`,
               width: `min(80%, 500px)`,
               opacity: playMoney ? 1 : 0,
-              transition: playMoney ? "all 0.1s" : "all 5s",
+              transition: playMoney ? "all 0.1s" : "all 4s",
             }}
           >
             <Lottie
@@ -470,7 +536,11 @@ const RechartsChart2 = ({
                 transition: "all 0.5s",
               }}
             >
-              {{ ...chart[chart.length - 1] }?.y?.toFixed(2)}
+              {fetchedData &&
+              fetchedData.length &&
+              chart.length < fetchedData.length
+                ? chart[chart.length - 1]?.y?.toFixed(2)
+                : lastValue?.toFixed(2)}
               {chart.length > 1 ? "x" : ""}
             </Box>
             <Box
@@ -580,6 +650,7 @@ const RechartsChart2 = ({
         setLoses={setLoses}
         coinsRef={coinsRef}
         coins2Ref={coins2Ref}
+        audioPermission={audioPermission}
       />
     </Box>
   );
