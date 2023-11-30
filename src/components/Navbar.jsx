@@ -66,8 +66,9 @@ const Navbar = ({
         <b>BALANCE:</b> {balance && thousandSeparator(balance)}${" "}
         <button
           style={{
-            width: isLandScape ? "30px" : "28px",
-            height: isLandScape ? "28px" : "26px",
+            width: isLandScape ? "20px" : "16px",
+            height: isLandScape ? "20px" : "16px",
+            aspectRatio: "1/1",
             background: "transparent",
             border: "none",
             outline: "none",
@@ -75,9 +76,14 @@ const Navbar = ({
             justifyContent: "center",
             alignItems: "center",
             cursor: "pointer",
+            padding: "0",
+            background: "#199bf5",
+            borderRadius: "50%",
+            fontSize: "1.2rem",
+            fontWeight: "600",
           }}
         >
-          <span
+          {/* <span
             style={{
               // color: "#fff",
               background: "#199bf5",
@@ -89,13 +95,13 @@ const Navbar = ({
               alignItems: "center",
               fontSize: "1.2rem",
               fontWeight: "600",
-              paddingTop: "2px",
+              // paddingTop: "2px",
               //   paddingBottom: "3px",
-              paddingLeft: "1px",
+              // paddingLeft: "1px",
             }}
-          >
+          > */}
             +
-          </span>
+          {/* </span> */}
         </button>
       </Box>
       {isLandScape && (

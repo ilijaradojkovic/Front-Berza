@@ -141,7 +141,7 @@ const RechartsChart2 = ({
   const { width, height } = useViewportSize();
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const apiUrl = "/api";
+  const apiUrl = "http://157.230.107.88:8001/crypto-run";
 
   const fetchData = async () => {
     const res = await axios.get(apiUrl);
