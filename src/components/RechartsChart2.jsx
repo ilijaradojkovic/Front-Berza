@@ -141,10 +141,10 @@ const RechartsChart2 = ({
   const { width, height } = useViewportSize();
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const apiUrl = "http://157.230.107.88:8001/crypto-run";
+  // const apiUrl = "http://157.230.107.88:8001/crypto-run";
 
   const fetchData = async () => {
-    const res = await axios.get(apiUrl);
+    const res = await axios.get('/.netlify/functions/api-proxy/crypto-run');
 
     if (res.data.length < 2) {
       fetchData();
@@ -392,18 +392,9 @@ const RechartsChart2 = ({
           width={isLandScape ? width / 1.4 : width / 1.1}
           height={isLandScape ? height / 2.27 : height / 3.5}
         >
-          {/* <ResponsiveContainer
-            style={{
-              overflow: "visible !important",
-            }}
-            width="100%"
-            height="100%"
-          > */}
           <ComposedChart
             width={isLandScape ? width / 1.4 : width / 1.1}
             height={isLandScape ? height / 2.27 : height / 3.5}
-            // width={300}
-            // height={300}
             data={chart}
             margin={{
               top: 5,
