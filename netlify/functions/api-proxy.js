@@ -1,6 +1,6 @@
 import axios from "axios";
 
-exports.handler = async function(event, context) {
+export async function handler (event, context) {
   const { path, queryStringParameters } = event;
   const queryString = new URLSearchParams(queryStringParameters).toString();
   const apiUrl = "http://157.230.107.88:8001/crypto-run";
