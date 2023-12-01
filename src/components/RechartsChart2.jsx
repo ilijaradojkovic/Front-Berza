@@ -144,15 +144,21 @@ const RechartsChart2 = ({
   // const apiUrl = "http://157.230.107.88:8001/crypto-run";
 
   const fetchData = async () => {
-    const res = await axios.get('/.netlify/functions/api-proxy/crypto-run');
-
-    if (res.data.length < 2) {
-      fetchData();
-    } else {
-      setFetchedData(res.data);
-      setLastValue(res.data[res.data.length - 1]); // Dodato
+    try {
+      const response = await fetch('/.netlify/functions/api-proxy/crypto-run');
+      const data = await response.json();
+  
+      if (data.length < 2) {
+        fetchData();
+      } else {
+        setFetchedData(data);
+        setLastValue(data[data.length - 1]);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
     }
   };
+  
 
   useEffect(() => {
     fetchData();

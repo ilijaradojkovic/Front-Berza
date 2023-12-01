@@ -1,21 +1,13 @@
-import axios from "axios";
-
-export async function handler (event, context) {
-  const { path, queryStringParameters } = event;
-  const queryString = new URLSearchParams(queryStringParameters).toString();
+export async function handler(event, context) {
   const apiUrl = "http://157.230.107.88:8001/crypto-run";
-
   try {
-    const response = await axios.get(apiUrl);
+    const response = await fetch(apiUrl);
+    const data = await response.json();
     return {
       statusCode: 200,
-      body: JSON.stringify(response.data),
+      body: JSON.stringify(data),
     };
   } catch (error) {
-    console.error('Error calling the API:', error);
-    return { 
-      statusCode: 500, 
-      body: `Server error: ${error.message}` 
-    };
+    return { statusCode: 500, body: error.toString() };
   }
-};
+}
