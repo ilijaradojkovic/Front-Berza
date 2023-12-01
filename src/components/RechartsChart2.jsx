@@ -41,6 +41,8 @@ const CustomDot = ({ x, y, value, isLandScape, gameOver, audioPermission }) => {
 
   const [falling, setFalling] = useState(false);
 
+  const [scale, setScale] = useState(false);
+
   useEffect(() => {
     if (value < 1) {
       setFalling(true);
@@ -48,6 +50,16 @@ const CustomDot = ({ x, y, value, isLandScape, gameOver, audioPermission }) => {
       setFalling(false);
     }
   }, [value]);
+
+  useEffect(() => {
+    if (falling) {
+      setScale(true);
+      const timeout = setTimeout(() => {
+        setScale(false);
+      }, 1000);
+    }
+  }, [falling]);
+
 
   // useEffect(() => {
   //   const audio = new Audio(fail);
@@ -109,7 +121,7 @@ const CustomDot = ({ x, y, value, isLandScape, gameOver, audioPermission }) => {
       <foreignObject
         width="100%"
         height="100%"
-        transform={`scale(${gameOver ? 2.5 : 1})`}
+        transform={`scale(${scale ? 5.5 : 1})`}
         style={{
           translate: `${gameOver ? 1.5 : 1}}`,
           transition: `all ${gameOver ? 1.5 : 0}s ease-in-out 0.2s`,
@@ -135,7 +147,7 @@ const RechartsChart2 = ({
   setBets,
   audioPermission,
 }) => {
-  const [chart, setChart] = useState([]);
+  const [chart, setChart] = useState([{ x: 0, y: 1}]);
   const [fetchedData, setFetchedData] = useState(null);
   const [lastValue, setLastValue] = useState(null); // Dodato
   const { width, height } = useViewportSize();
@@ -145,9 +157,9 @@ const RechartsChart2 = ({
 
   const fetchData = async () => {
     try {
-      const response = await fetch('/.netlify/functions/api-proxy/crypto-run');
+      const response = await fetch("/.netlify/functions/api-proxy/crypto-run");
       const data = await response.json();
-  
+
       if (data.length < 2) {
         fetchData();
       } else {
@@ -155,16 +167,15 @@ const RechartsChart2 = ({
         setLastValue(data[data.length - 1]);
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
     }
   };
-  
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  const [maxY, setMaxY] = useState(0);
+  const [maxY, setMaxY] = useState(1);
 
   const updateMaxY = (newData) => {
     const newYMax = Math.max(...newData.map((d) => d.y));
@@ -251,27 +262,15 @@ const RechartsChart2 = ({
   }, [gameOver, ticker, fetchedData]);
 
   useEffect(() => {
-    // const audio = new Audio(timer);
     if (ticker === 0) {
-      setChart([{ x: 1, y: 1 }]);
       setReset(true);
       setGameOver(false);
     }
   }, [ticker]);
 
-  // useEffect(() => {
-  //   const audio = new Audio(timer);
-  //   if (gameOver) {
-  //     audio.play();
-  //   } else {
-  //     audio.pause();
-  //     audio.currentTime = 0;
-  //   }
-  // }, [gameOver]);
-
   useEffect(() => {
     if (reset) {
-      setChart([]);
+      setChart([{ x: 0, y: 1 }]);
       setReset(false);
       fetchData();
       setMaxY(2);
@@ -359,6 +358,12 @@ const RechartsChart2 = ({
       setPlayIfHigher(5);
     }
   }, [gameOver]);
+
+  useEffect(() => {
+    if (chart.length < 5) {
+      console.log("chart length 1", chart);
+    }
+  }, [chart]);
 
   return (
     <Box
