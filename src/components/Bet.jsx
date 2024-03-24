@@ -455,8 +455,8 @@ const Bet = ({
           sx={{
             backgroundColor: gameOver
               ? isBeting
-                ? "#006385" // Plava boja za isBeting i gameOver
-                : "#008563" // Zelena boja za !isBeting i gameOver
+                ? "#880031" // Plava boja za isBeting i gameOver
+                : "#006385" // Zelena boja za !isBeting i gameOver
               : isBeting
               ? currentValue < prevValue
                 ? "#880031" // Crvena boja za isBeting, currentValue < prevValue
@@ -476,8 +476,8 @@ const Bet = ({
             "&:hover": {
               backgroundColor: gameOver
                 ? isBeting
-                  ? "#00638599" // Plava boja za isBeting i gameOver na hover
-                  : "#00856399" // Zelena boja za !isBeting i gameOver na hover
+                  ? "#88003199" // Plava boja za isBeting i gameOver na hover
+                  : "#00638599" // Zelena boja za !isBeting i gameOver na hover
                 : isBeting
                 ? currentValue < prevValue
                   ? "#88003199" // Crvena boja za isBeting, currentValue < prevValue na hover
@@ -490,6 +490,12 @@ const Bet = ({
           onClick={gameOver ? bet : sell}
         >
           {gameOver ? (isBeting ? "Cancel" : "Bet") : isSold ? "Sold" : "Sell"}
+          <br />
+          {!gameOver &&
+            isBeting &&
+            prevValue > currentValue &&
+            !isSold &&
+            "50%"}
         </Button>
       </Box>
     </Box>
