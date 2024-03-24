@@ -19,6 +19,7 @@ const Bet = ({
   setLoses,
   lottieRef,
   audioPermission,
+  prevValue,
 }) => {
   const [betAmount, setBetAmount] = useState(100);
   const [cashOutAmount, setCashOutAmount] = useState(1.6);
@@ -452,25 +453,38 @@ const Bet = ({
         </Box>
         <Button
           sx={{
-            backgroundImage: gameOver
+            backgroundColor: gameOver
               ? isBeting
-                ? "linear-gradient(180deg, #00c1fc 5.00%, #006385 92.15%)"
-                : "linear-gradient(180deg, #00FCC1 5.00%, #008563 92.15%)"
+                ? "#006385" // Plava boja za isBeting i gameOver
+                : "#008563" // Zelena boja za !isBeting i gameOver
               : isBeting
-              ? "linear-gradient(180deg, #FF0050 5.00%, #880031 92.15%)"
-              : "linear-gradient(180deg, #00FCC1 5.00%, #008563 92.15%)",
+              ? currentValue < prevValue
+                ? "#880031" // Crvena boja za isBeting, currentValue < prevValue
+                : "#008563" // Zelena boja za isBeting, currentValue >= prevValue
+              : "#008563", // Zelena boja kao osnovna
+            boxShadow: "inset 0px -4px -4px 10px rgba(0, 0, 0, 0.25)",
+            transition: "background-color 0.5s", // Dodavanje tranzicije za boju
             width: "100%",
             minHeight: "9rem",
             height: "100%",
             fontSize: "2.5rem",
             borderRadius: "0.3rem",
             display: "block",
-            transition: "all 0.5s ",
             border: "none",
             outline: "none",
-            filter: " drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))",
-            // flex: 1,
-            //   margin: "2rem",
+            filter: "drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))",
+            "&:hover": {
+              backgroundColor: gameOver
+                ? isBeting
+                  ? "#00638599" // Plava boja za isBeting i gameOver na hover
+                  : "#00856399" // Zelena boja za !isBeting i gameOver na hover
+                : isBeting
+                ? currentValue < prevValue
+                  ? "#88003199" // Crvena boja za isBeting, currentValue < prevValue na hover
+                  : "#00856399" // Zelena boja za isBeting, currentValue >= prevValue na hover
+                : "#00856399", // Zadržava istu zelenu boju kao osnovna na hover
+              boxShadow: "inset 0px -4px -4px 10px rgba(0, 0, 0, 0.25)", // Zadržava isti shadow na hover
+            },
           }}
           disabled={(!gameOver && !isBeting) || isSold}
           onClick={gameOver ? bet : sell}

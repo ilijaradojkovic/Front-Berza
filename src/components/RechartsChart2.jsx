@@ -158,6 +158,7 @@ const RechartsChart2 = ({
   const fetchData = async () => {
     try {
       const response = await fetch("/.netlify/functions/api-proxy/crypto-run");
+      // const response = await fetch(apiUrl);
       const data = await response.json();
 
       if (data.length < 2) {
@@ -534,7 +535,7 @@ const RechartsChart2 = ({
             <Box
               sx={{
                 transform: `scale(${gameOver ? 1.5 : 1})`,
-                color: gameOver ? "#ff3b65" : "white",
+                color: gameOver ? "#ff3b65" : chart[chart.length - 2]?.y > chart[chart.length - 1]?.y ? "#ff3b65" : "#3EB89B",
                 transition: "all 0.5s",
               }}
             >
@@ -641,6 +642,7 @@ const RechartsChart2 = ({
         gameOver={gameOver}
         setBalance={setBalance}
         balance={balance}
+        prevValue={chart[chart.length - 2]?.y}
         currentValue={chart[chart.length - 1]?.y}
         bets={bets}
         setBets={setBets}
