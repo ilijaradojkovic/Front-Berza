@@ -1,58 +1,62 @@
+import React, { useEffect, useState } from "react";
+
+import { AllBets } from "./all-bets/AllBets";
+import { MyBets } from "./my-bets/MyBets";
+import { TopWins } from "./top-bets/TopWins";
 import { Box, Button, Table } from "@mantine/core";
-import React, { useState } from "react";
-import logo from "../assets/images/logo.png";
-import correct from "../assets/images/correct.png";
-import { thousandSeparator } from "../helpers/formatNumbers";
-import { GppBad, GppGood } from "@mui/icons-material";
 
 const Aside = ({ isLandScape, bets }) => {
-  const [activeButton, setActiveButton] = useState("0");
-
+  const [activeButton, setActiveButton] = useState(0);
+  const [topWinsType, setTopWinsType] = useState(0);
   const buttons = [
     {
       name: "All Bets",
-      value: "0",
+      value: 0,
     },
     {
       name: "My Bets",
-      value: "1",
+      value: 1,
     },
     {
       name: "Top Wins",
-      value: "2",
+      value: 2,
     },
   ];
 
   const tableHeaders = ["Time", "Bet", "Coeff.", "Cash out", "PF"];
 
-  const sortedBets = activeButton === "2" ? [...bets].sort((a, b) => parseFloat(b.cashOut) - parseFloat(a.cashOut)) : bets;
+  const toggleTopWinsType = (type) => {
+    setTopWinsType(type);
+  };
+
   return (
     <Box
-      sx={{
+    style={{
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: "1rem",
+        backgroundColor:'blue',
+        width:'100%'
+        
       }}
     >
-      {" "}
       <Box
-        sx={{
+        style={{
           display: "flex",
+          width: "100%",
           flexDirection: "column",
           backgroundColor: "#3b3363",
           borderRadius: "0.2rem",
           height: "100%",
-          width: isLandScape ? "auto" : "100%",
+          width: "100%",
           marginTop: isLandScape ? "0rem" : "0rem",
         }}
       >
         <Box
-          sx={{
+          style={{
             display: "flex",
             padding: "0.5rem",
             justifyContent: "space-between",
-
             border: "1px solid #685ab0",
             backgroundColor: "#4a407d",
             margin: "1rem",
@@ -62,26 +66,64 @@ const Aside = ({ isLandScape, bets }) => {
             <Button
               key={button.value}
               onClick={() => setActiveButton(button.value)}
-              variant={activeButton === button.value ? "" : ""}
-              sx={{
+              variant="Transparent"
+              style={{
                 backgroundColor: activeButton === button.value ? "#685AB0" : "",
                 borderRadius: "0rem",
                 color: "white",
                 width: "100%",
+                
               }}
             >
               {button.name}
             </Button>
           ))}
         </Box>
+        {activeButton === 2 && (
+          <Box
+          style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: "1rem",
+              marginBottom: "1rem",
+            }}
+          >
+            <Box
+              style={{
+                padding: "0.5rem",
+                color: "white",
+                borderRadius: "0.2rem",
+                border: topWinsType == 0 ? "1px solid" : "",
+                cursor: "pointer",
+              }}
+              onClick={() => toggleTopWinsType(0)}
+            >
+              MULTIPLIERS
+            </Box>
+            <Box
+              style={{
+                padding: "0.5rem",
+                color: "white",
+                borderRadius: "0.2rem",
+                border: topWinsType == 1 ? "1px solid" : "",
+                cursor: "pointer",
+              }}
+              onClick={() => toggleTopWinsType(1)}
+            >
+              BIGGEST WINS
+            </Box>
+          </Box>
+        )}
+  
+
         <Table
-          sx={{
-            maxHeight: "78vh", // Postavite visinu koja vam odgovara
-            // width: "300px",
-            overflowY: "auto", // Omogućite skrolovanje po vertikali
-            display: isLandScape ? "block" : "table",
+          style={{
+            maxHeight: "70vh", 
+            width: '100%', 
+            overflow: "scroll !important",
             color: "#ae9eff",
             border: "none",
+          
             "& th": {
               border: "none",
             },
@@ -106,26 +148,12 @@ const Aside = ({ isLandScape, bets }) => {
           // style={tableStyle}
           // striped
         >
+
+     
           <thead style={{
             position: "sticky",
-            width: "110px",
-
-            top: 0,
             zIndex: 1,
-            backgroundColor: "#3b3363", // Postavite pozadinu koja vam odgovara
-            // "&::-webkit-scrollbar": {
-            //   width: "6px",
-            // },
-            // "::-webkit-scrollbar-track": {
-            //   background: "transparent",
-            // },
-            // "::-webkit-scrollbar-thumb": {
-            //   background: "#685AB0",
-            //   borderRadius: "5px",
-            // },
-            // "&::-webkit-scrollbar-thumb:hover": {
-            //   background: "#685AB09f",
-            // },
+            backgroundColor: "#3b3363", 
           }}>
             <tr>
               {tableHeaders.map((header) => (
@@ -142,68 +170,11 @@ const Aside = ({ isLandScape, bets }) => {
               ))}
             </tr>
           </thead>
-          <tbody>
-            {bets &&
-              sortedBets.map((data, index) => (
-                <tr
-                  key={index}
-                  style={{
-                    backgroundColor: index % 2 === 0 ? "#4a407d" : "#3b3363",
-                    border: "2px solid transparent",
-                  }}
-                >
-                  <td
-                    style={{
-                      border: "none !important",
-                      textAlign: "center",
-                    }}
-                  >
-                    {String(new Date(data.time).getHours()).padStart(2, "0")}:
-                    {String(new Date(data.time).getMinutes()).padStart(2, "0")}
-                  </td>
-                  <td
-                    style={{
-                      textAlign: "center",
-                    }}
-                  >
-                    {data?.bet && thousandSeparator(data?.bet)}
-                  </td>
-                  <td
-                    style={{
-                      textAlign: "center",
-                    }}
-                  >
-                    {data?.coeff && thousandSeparator(data?.coeff)}
-                  </td>
-                  <td
-                    style={{
-                      textAlign: "center",
-                    }}
-                  >
-                    {data?.cashOut && thousandSeparator(data?.cashOut)}
-                  </td>
-                  <td
-                    style={{
-                      textAlign: "center",
-                    }}
-                  >
-                    {data?.profit ? (
-                      <GppGood
-                        sx={{
-                          color: "#3eb89b",
-                        }}
-                      />
-                    ) : (
-                      <GppBad
-                        sx={{
-                          color: "#ff3b65",
-                        }}
-                      />
-                    )}
-                  </td>
-                </tr>
-              ))}
-          </tbody>
+           {
+            activeButton===0? <AllBets/>
+            :activeButton===1? <MyBets/>
+            : <TopWins topWinsType={topWinsType} />
+           }
         </Table>
       </Box>
     </Box>

@@ -15,7 +15,6 @@
     "@mantine/core": "^6.0.19",
     "@mantine/hooks": "^6.0.19",
     "@mui/icons-material": "^5.14.3",
-    "@mui/material": "^5.14.5",
     "apexcharts": "^3.41.0",
     "axios": "^1.6.2",
     "konva": "^9.2.3",
@@ -26,8 +25,12 @@
     "react-apexcharts": "^1.4.1",
     "react-dom": "^18.2.0",
     "react-konva": "^18.2.10",
+    "react-query": "^3.39.3",
     "react-spring": "^9.7.3",
-    "recharts": "^2.10.1"
+    "recharts": "^2.10.1",
+    "rsocket-core": "^0.0.29-alpha.0",
+    "rsocket-tcp-client": "^0.0.29-alpha.0",
+    "rsocket-websocket-client": "^0.0.29-alpha.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.15",

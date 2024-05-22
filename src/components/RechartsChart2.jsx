@@ -5,8 +5,9 @@ import { useViewportSize } from "@mantine/hooks";
 import bitcoin from "../assets/images/bitcoin.png";
 import growth from "../assets/images/growth.png";
 import fall from "../assets/images/fall.png";
-import emoji from "../assets/images/emoji.png";
-import axios from "axios";
+import { RSocketClient } from "rsocket-core";
+import RSocketWebsocketClient from "rsocket-websocket-client";
+
 import { keyframes } from "@emotion/react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { thousandSeparator } from "../helpers/formatNumbers";
@@ -19,6 +20,9 @@ import {
   Scatter,
   ScatterChart,
   ComposedChart,
+  CartesianGrid,
+  Tooltip,
+  Legend,
 } from "recharts";
 import History from "./History";
 import Footer from "./Footer";
@@ -31,6 +35,8 @@ import money from "../assets/lottie/money.json";
 import explosion from "../assets/lottie/explosion3.json";
 import fail from "../assets/sounds/boom.wav";
 import timer from "../assets/sounds/timer.wav";
+import { isFinishedState, isStartedState, isWaitingState } from "./util/game-state";
+import { useSpring ,animated } from "react-spring";
 
 const CustomDot = ({ x, y, value, isLandScape, gameOver, audioPermission }) => {
   const animContainer = useRef(null);
@@ -43,69 +49,68 @@ const CustomDot = ({ x, y, value, isLandScape, gameOver, audioPermission }) => {
 
   const [scale, setScale] = useState(false);
 
-  useEffect(() => {
-    if (value < 1) {
-      setFalling(true);
-    } else {
-      setFalling(false);
-    }
-  }, [value]);
-
-  useEffect(() => {
-    if (falling) {
-      setScale(true);
-      const timeout = setTimeout(() => {
-        setScale(false);
-      }, 1000);
-    }
-  }, [falling]);
-
+  // useEffect(() => {
+  //   if (value < 1) {
+  //     setFalling(true);
+  //   } else {
+  //     setFalling(false);
+  //   }
+  // }, [value]);
 
   // useEffect(() => {
-  //   const audio = new Audio(fail);
-  //   if (falling && audioPermission) {
-  //     audio.play();
+  //   if (falling) {
+  //     setScale(true);
+  //     const timeout = setTimeout(() => {
+  //       setScale(false);
+  //     }, 1000);
   //   }
-  // }, [falling, audioPermission]);
+  // }, [falling]);
 
-  useEffect(() => {
-    // Ako je igra završena, učitava se animacija eksplozije
-    const animationData = falling ? explosion : myLottieAnimation;
-    const loop = falling ? false : true;
-    const speed = falling ? 1 : 1;
+  // // useEffect(() => {
+  // //   const audio = new Audio(fail);
+  // //   if (falling && audioPermission) {
+  // //     audio.play();
+  // //   }
+  // // }, [falling, audioPermission]);
 
-    anim.current = lottie.loadAnimation({
-      container: animContainer.current,
-      renderer: "svg",
-      loop: loop,
-      // speed: speed,
-      autoplay: true,
-      rendererSettings: {
-        preserveAspectRatio: "xMidYMid slice",
-      },
-      animationData: animationData,
-    });
-    anim.current.setSpeed(speed);
+  // useEffect(() => {
+  //   // Ako je igra završena, učitava se animacija eksplozije
+  //   const animationData = falling ? explosion : myLottieAnimation;
+  //   const loop = falling ? false : true;
+  //   const speed = falling ? 1 : 1;
 
-    return () => anim.current.destroy();
-  }, [falling]);
+  //   anim.current = lottie.loadAnimation({
+  //     container: animContainer.current,
+  //     renderer: "svg",
+  //     loop: loop,
+  //     // speed: speed,
+  //     autoplay: true,
+  //     rendererSettings: {
+  //       preserveAspectRatio: "xMidYMid slice",
+  //     },
+  //     animationData: animationData,
+  //   });
+  //   anim.current.setSpeed(speed);
 
-  useEffect(() => {
-    if (value > prevValue.current) {
-      setIsIncreasing(true);
-    } else if (value < prevValue.current) {
-      setIsIncreasing(false);
-    }
-    prevValue.current = value;
-  }, [value]);
+  //   return () => anim.current.destroy();
+  // }, [falling]);
 
-  useEffect(() => {
-    if (isIncreasing) {
-      anim.current.playSegments([5, 22], true);
-    } else {
-      anim.current.playSegments([22, 55], true);
-    }
-  }, [isIncreasing]);
+  // useEffect(() => {
+  //   if (value > prevValue.current) {
+  //     setIsIncreasing(true);
+  //   } else if (value < prevValue.current) {
+  //     setIsIncreasing(false);
+  //   }
+  //   prevValue.current = value;
+  // }, [value]);
+
+  // useEffect(() => {
+  //   if (isIncreasing) {
+  //     anim.current.playSegments([5, 22], true);
+  //   } else {
+  //     anim.current.playSegments([22, 55], true);
+  //   }
+  // }, [isIncreasing]);
 
   return (
     <svg
@@ -146,161 +151,115 @@ const RechartsChart2 = ({
   bets,
   setBets,
   audioPermission,
+  gameState,
+  tick,
+  lastValue
 }) => {
-  const [chart, setChart] = useState([{ x: 0, y: 1}]);
-  const [fetchedData, setFetchedData] = useState(null);
-  const [lastValue, setLastValue] = useState(null); // Dodato
+
+
   const { width, height } = useViewportSize();
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isBackgroundPlaying, setIsBackgroundPlaying] = useState(true);
+  const [isPlaying,setIsPlaying] = useState(false);
 
-  // const apiUrl = "http://157.230.107.88:8001/crypto-run";
+  const [chartData, setChartData] = useState([]);
+  const [currentMultiplier, setCurrentMultiplier] = useState(0);
 
-  const fetchData = async () => {
-    try {
-      const response = await fetch("/.netlify/functions/api-proxy/crypto-run");
-      // const response = await fetch(apiUrl);
-      const data = await response.json();
+  const confettiRef = useRef(null);
 
-      if (data.length < 2) {
-        fetchData();
-      } else {
-        setFetchedData(data);
-        setLastValue(data[data.length - 1]);
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-  };
+  const coinsRef = useRef(null);
+  const coins2Ref = useRef(null);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const moneyRef = useRef(null);
 
-  const [maxY, setMaxY] = useState(1);
-
-  const updateMaxY = (newData) => {
-    const newYMax = Math.max(...newData.map((d) => d.y));
-    setMaxY((prevMaxY) => Math.max(prevMaxY, newYMax));
-  };
-
-  const updateChart = () => {
-    if (fetchedData && fetchedData.length > 0) {
-      const intervalId = setInterval(() => {
-        setChart((currentData) => {
-          const nextIndex = currentData.length;
-          if (nextIndex < fetchedData.length) {
-            const newData = [
-              ...currentData,
-              { x: nextIndex, y: fetchedData[nextIndex] },
-            ];
-            updateMaxY(newData); // Ažuriranje maxY
-            return newData;
-          } else {
-            clearInterval(intervalId);
-            return currentData;
-          }
-        });
-      }, 80);
-    }
-  };
-
-  useEffect(() => {
-    updateChart();
-  }, [fetchedData]);
+  const [playMoney, setPlayMoney] = useState(false);
+  const [playIfHigher, setPlayIfHigher] = useState(5);
 
   const [gameOver, setGameOver] = useState(false);
-  const [ticker, setTicker] = useState(10);
   const [investory, setInvestory] = useLocalStorage("investory", 0);
   const [wins, setWins] = useLocalStorage("wins", 0);
   const [loses, setLoses] = useLocalStorage("loses", 0);
 
   const [reset, setReset] = useState(false);
-
   const [history, setHistory] = useLocalStorage("history", []);
+  const [maxY, setMaxY] = useState(1);
 
-  // set game over
+  
+
+ 
   useEffect(() => {
-    if (chart?.length === fetchedData?.length) {
-      setGameOver(true);
-
-      let currentValue = chart[chart.length - 1].y;
-      const steps = 5; // Broj koraka u kojima će se smanjivati vrednost
-      const decrementAmount = currentValue / steps; // Količina smanjenja u svakom koraku
-      const intervalTime = 50 / steps; // Vreme između svakog koraka
-
-      const interval = setInterval(() => {
-        currentValue -= decrementAmount;
-        if (currentValue <= 0) {
-          clearInterval(interval);
-          currentValue = 0;
-        }
-
-        setChart((prev) => [
-          ...prev.slice(0, -1),
-          { x: prev[prev.length - 1].x, y: currentValue },
-        ]);
-      }, intervalTime);
-
-      return () => clearInterval(interval);
+    console.log(gameState);
+      setIsPlaying(false)
+      setGameOver(false)
+    if (isWaitingState(gameState)) {
+      console.log("RESTARTING GAME DATA");
+      setCurrentMultiplier(0)
+      setChartData([]);
+    }else if(isStartedState(gameState)){
+      setIsPlaying(true)
     }
-  }, [chart, fetchedData]);
+    else if(isFinishedState(gameState)){
+      setGameOver(true)
+    }
 
-  // set ticker
-  useEffect(() => {
-    if (gameOver && ticker > 0) {
-      const interval = setInterval(() => {
-        setTicker((prev) => {
-          return prev - 1;
-        });
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-    if (ticker === 0) {
-      const timeout = setTimeout(() => {
-        setTicker(10);
-      }, 1500);
-    }
-  }, [gameOver, ticker, fetchedData]);
+  }, [gameState]);
+
+  
 
   useEffect(() => {
-    if (ticker === 0) {
-      setReset(true);
-      setGameOver(false);
-    }
-  }, [ticker]);
+    const client = new RSocketClient({
+      setup: {
+        // ms btw sending keepalive to server
+        keepAlive: 60000,
+        // ms timeout if no keepalive response
+        lifetime: 180000,
+        // format of `data`
+        dataMimeType: "application/json",
+        // format of `metadata`
+        metadataMimeType: "message/x.rsocket.routing.v0",
+      },
+      transport: new RSocketWebsocketClient({
+        url: "ws://localhost:9000/",
+      }),
+    });
 
-  useEffect(() => {
-    if (reset) {
-      setChart([{ x: 0, y: 1 }]);
-      setReset(false);
-      fetchData();
-      setMaxY(2);
-    }
-  }, [reset]);
-
-  useEffect(() => {
-    if (gameOver) {
-      // setImagePositionY(0)
-      setGameOver(true);
-      setHistory((prev) => {
-        if (prev && Array.isArray(prev)) {
-          return [lastValue, ...prev]; // Verovatno ste mislili na `chart.length - 1`
-        }
-        return [lastValue]; // Ako `prev` nije iterabilno, vrati novi niz
-      });
-    }
-  }, [gameOver]);
-
-  // is playing
-  useEffect(() => {
-    if (gameOver) {
-      setIsPlaying(false);
-    } else {
-      if (chart.length > 50) {
-        setIsPlaying(true);
+    client.connect().subscribe({
+      onComplete: (socket) => {
+        // socket provides the rsocket interactions fire/forget, request/response,
+        // request/stream, etc as well as methods to close the socket.
+        socket
+          .requestStream({
+            metadata: String.fromCharCode("points".length) + "points",
+          })
+          .subscribe({
+            onComplete: () => {
+              console.log("complete");
+            },
+            onError: (error) => {
+              console.log(error);
+              // addErrorMessage("Connection has been closed due to ", error);
+            },
+            onNext: (payload) => {
+              let socketData=JSON.parse(payload.data);
+              // console.log(socketData);
+              setCurrentMultiplier(socketData.y);
+              setChartData((prevChart) => [
+                ...prevChart,
+                socketData
+              ]);
+              // updateState(payload.data);
+            },
+            onSubscribe: (subscription) => {
+              subscription.request(2147483647);
+            },
+          });
+      },
+      onError: (error) => {
+        console.log(error);
+        // addErrorMessage("Connection has been refused due to ", error);
       }
-    }
-  }, [gameOver, chart]);
+    });
+  }, []);
+
 
   const bgMoving = keyframes({
     "0%": {
@@ -313,70 +272,24 @@ const RechartsChart2 = ({
     },
   });
 
-  const confettiRef = useRef(null);
-
-  const coinsRef = useRef(null);
-  const coins2Ref = useRef(null);
-
-  const moneyRef = useRef(null);
-
-  // useEffect(() => {
-  //   if (gameOver) {
-  //     confettiRef.current.play();
-  //   } else {
-  //     confettiRef.current.stop();
-  //   }
-  // }, [gameOver]);
-
-  const [playMoney, setPlayMoney] = useState(false);
-  const [playIfHigher, setPlayIfHigher] = useState(5);
-
-  useEffect(() => {
-    const currentValue = chart[chart.length - 1]?.y.toFixed(0);
-
-    if (currentValue > playIfHigher) {
-      setPlayMoney(true);
-      setPlayIfHigher((prev) => prev + prev);
-    }
-    // else {
-    //   setPlayMoney(false);
-    // }
-  }, [chart]);
-
-  useEffect(() => {
-    if (playMoney) {
-      moneyRef.current.play();
-      console.log("play");
-    } else {
-      const timeout = setTimeout(() => {
-        moneyRef.current.stop();
-      }, 2000);
-    }
-  }, [playMoney]);
-
-  useEffect(() => {
-    if (gameOver) {
-      setPlayIfHigher(5);
-    }
-  }, [gameOver]);
-
-  useEffect(() => {
-    if (chart.length < 5) {
-      console.log("chart length 1", chart);
-    }
-  }, [chart]);
+  const springProps = useSpring({
+    currentMultiplier,
+    from: { currentMultiplier: 0 },
+  });
 
   return (
     <Box
-      sx={{
+    style={{
         display: "flex",
         flexDirection: "column",
         gap: "1rem",
+        position:'relative'
       }}
     >
-      <History history={history} />
+   
+      <History gameState={gameState} />
       <Box
-        sx={{
+        style={{
           backgroundImage: `url(${graphbg})`,
           backgroundSize: " 50% auto",
           backgroundPositionX: `0%`,
@@ -393,21 +306,21 @@ const RechartsChart2 = ({
           borderRadius: "0.5rem",
           boxShadow: "0 0 1rem rgba(0,0,0,0.2)",
           animation: `${bgMoving} 4s linear infinite`,
-          animationPlayState: isPlaying ? "running" : "paused",
+          animationPlayState: isBackgroundPlaying ? "running" : "paused",
         }}
       >
         <Box
-          sx={{
+          style={{
             position: "relative",
             overflow: "visible !important",
           }}
           width={isLandScape ? width / 1.4 : width / 1.1}
           height={isLandScape ? height / 2.27 : height / 3.5}
         >
-          <ComposedChart
+          <LineChart
             width={isLandScape ? width / 1.4 : width / 1.1}
             height={isLandScape ? height / 2.27 : height / 3.5}
-            data={chart}
+            data={chartData}
             margin={{
               top: 5,
               right: isLandScape ? 30 : 20,
@@ -420,11 +333,11 @@ const RechartsChart2 = ({
           >
             <defs>
               <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#01f9e3" stopOpacity={1} />
+                <stop offset="5%" stopColor="#01f213" stopOpacity={1} />
                 <stop offset="95%" stopColor="#FF003c" stopOpacity={1} />
               </linearGradient>
             </defs>
-            <XAxis dataKey="x" type="number" domain={[0, 50]} />
+            <XAxis dataKey="x" type="number" domain={[0, 80]} />
             <YAxis
               domain={[0, maxY + 1]}
               tickFormatter={(value) => value.toFixed(1)}
@@ -439,32 +352,12 @@ const RechartsChart2 = ({
               strokeWidth={3}
               dot={false}
             >
-              {" "}
             </Line>
-            <Scatter
-              dataKey="y"
-              data={[
-                {
-                  x: chart[chart.length - 1]?.x,
-                  y: chart[chart.length - 1]?.y,
-                },
-              ]}
-              style={{
-                rotate: 45,
-              }}
-              shape={
-                <CustomDot
-                  value={chart[chart.length - 1]?.y}
-                  isLandScape={isLandScape}
-                  gameOver={gameOver}
-                />
-              }
-              isAnimationActive={false}
-            />
-          </ComposedChart>
-          {/* </ResponsiveContainer> */}
+   
+          </LineChart>
+          {/* //Konfete animacija,kad predje odredjeni broj  */}
           {/* <Box
-            sx={{
+            style={{
               position: "absolute",
               top: "50%",
               left: "50%",
@@ -474,8 +367,11 @@ const RechartsChart2 = ({
           >
             <Lottie animationData={confetti} lottieRef={confettiRef} />
           </Box> */}
-          <Box
-            sx={{
+
+          {/* //Animacija za pare */}
+          {/* <Box
+            style={{
+             
               position: "absolute",
               top: "50%",
               left: "50%",
@@ -493,74 +389,67 @@ const RechartsChart2 = ({
                 setPlayMoney(false);
               }}
             />
-          </Box>
-          <Box
-            sx={{
+          </Box> */}
+          {/* //oin anikmation za pare  levi bet*/}
+          {/* <Box
+            style={{
               position: "absolute",
               bottom: "0%",
               left: "36%",
               transform: `translate(-50%, 50%)`,
               width: "200px",
-              //   opacity: gameOver ? 1 : 0,
+                opacity: gameOver ? 1 : 0,
             }}
           >
             <Lottie animationData={coins} lottieRef={coinsRef} loop={false} />
-          </Box>
-          <Box
-            sx={{
+          </Box> */}
+
+          {/* Coin anikmation  za desni bet */}
+          {/* <Box
+            style={{
               position: "absolute",
               bottom: "0%",
               left: "88%",
               transform: `translate(-50%, 50%)`,
               width: "200px",
-              //   opacity: gameOver ? 1 : 0,
+                opacity: gameOver ? 1 : 0,
             }}
           >
             <Lottie animationData={coins} lottieRef={coins2Ref} loop={false} />
-          </Box>
+          </Box> */}
           <Box
-            sx={{
+            style={{
               position: "absolute",
               top: isLandScape ? "20%" : "40%",
               left: "50%",
               transform: `translate(-50%, -50%)`,
               fontSize: isLandScape ? "3rem" : "2rem",
+              color:'white',
               fontWeight: "bold",
               zIndex: 100,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
+              textAlign: 'center',
+            
             }}
           >
-            <Box
-              sx={{
-                transform: `scale(${gameOver ? 1.5 : 1})`,
-                color: gameOver ? "#ff3b65" : chart[chart.length - 2]?.y > chart[chart.length - 1]?.y ? "#ff3b65" : "#3EB89B",
-                transition: "all 0.5s",
-              }}
-            >
-              {fetchedData &&
-              fetchedData.length &&
-              chart.length < fetchedData.length
-                ? chart[chart.length - 1]?.y?.toFixed(2)
-                : lastValue?.toFixed(2)}
-              {chart.length > 1 ? "x" : ""}
-            </Box>
-            <Box
-              sx={{
-                opacity: gameOver ? 1 : 0,
-                transition: "all 0.5s",
-                color: "white",
-                fontSize: "1rem",
-              }}
-            >
-              Next withdraw in {ticker}
-            </Box>
-          </Box>
+          {
+            (gameOver)? <div >
+            Flew Away!<br />
+            {lastValue}
+          </div>
+            :
+          isPlaying ?       <animated.span>{springProps.currentMultiplier.interpolate((val) =>val.toFixed(2))}</animated.span>
+          : `Waiting for player ${10 - tick}`}
+           
+          </Box>  
+      
+            
         </Box>
         {isLandScape && (
           <Box
-            sx={{
+          style={{
               display: "flex",
               width: "100%",
               justifyContent: "stretch",
@@ -569,7 +458,7 @@ const RechartsChart2 = ({
             }}
           >
             <Box
-              sx={{
+              style={{
                 width: "100%",
                 textAlign: "center",
                 backgroundImage:
@@ -591,7 +480,7 @@ const RechartsChart2 = ({
               INVESTORY {thousandSeparator(investory)}
             </Box>
             <Box
-              sx={{
+              style={{
                 width: "100%",
                 textAlign: "center",
                 backgroundImage:
@@ -610,10 +499,10 @@ const RechartsChart2 = ({
                   width: "1.5rem",
                 }}
               />
-              WINS {thousandSeparator(wins)}
+              {/* WINS {thousandSeparator(wins)} */}
             </Box>
             <Box
-              sx={{
+              style={{
                 width: "100%",
                 textAlign: "center",
                 backgroundImage:
@@ -642,8 +531,8 @@ const RechartsChart2 = ({
         gameOver={gameOver}
         setBalance={setBalance}
         balance={balance}
-        prevValue={chart[chart.length - 2]?.y}
-        currentValue={chart[chart.length - 1]?.y}
+        prevValue={chartData[chartData.length - 2]?.y}
+        currentValue={chartData[chartData.length - 1]?.y}
         bets={bets}
         setBets={setBets}
         investory={investory}
@@ -655,6 +544,10 @@ const RechartsChart2 = ({
         coinsRef={coinsRef}
         coins2Ref={coins2Ref}
         audioPermission={audioPermission}
+        gameState={gameState}
+        isPlaying={isPlaying}
+        currentMultiplier={currentMultiplier}
+    
       />
     </Box>
   );

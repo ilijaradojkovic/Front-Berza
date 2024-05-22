@@ -1,6 +1,17 @@
 import { Box, Button, Switch, Text, TextInput } from "@mantine/core";
 import React, { useEffect, useState } from "react";
 import success from "../assets/sounds/coins.wav";
+import {
+  IdentitySerializer,
+  JsonSerializer,
+  RSocketClient,
+} from "rsocket-core";
+import RSocketWebSocketClient from "rsocket-websocket-client";
+import {
+  isFinishedState,
+  isStartedState,
+  isWaitingState,
+} from "./util/game-state";
 
 const Bet = ({
   setStart,
@@ -20,127 +31,369 @@ const Bet = ({
   lottieRef,
   audioPermission,
   prevValue,
+  gameState,
+  isPlaying,
+  currentMultiplier,
 }) => {
   const [betAmount, setBetAmount] = useState(100);
-  const [cashOutAmount, setCashOutAmount] = useState(1.6);
+  const [autoCashOutAmount, setAutoCashOutAmount] = useState(1.6);
   const [autoCashOut, setAutoCashOut] = useState(false);
-  const options = [1, 2, 5, 10];
-
+  const optionsMoneyToBet = [1, 2, 5, 10];
+  const [betOptionMoney, setBetOptionMoney] = useState(optionsMoneyToBet[0]);
   const [isBeting, setIsBeting] = useState(false);
   const [isSold, setIsSold] = useState(false);
+  const [client, setClient] = useState();
+  const [bet, setBet] = useState();
+  const [isAutoCashOutDone,setIsAutoCashOutDone ]=useState(false)
 
-  //   useEffect(() => {
-  //     setFormatedBetAmount(betAmount + "$");
-  //     }, [betAmount]);
+  useEffect(() => {
+    //   setClient( new RSocketClient({
+    //     setup: {
+    //       // ms btw sending keepalive to server
+    //       keepAlive: 60000,
+    //       // ms timeout if no keepalive response
+    //       lifetime: 180000,
+    //       // format of `data`
+    //       dataMimeType: 'application/json',
+    //       // format of `metadata`
+    //       metadataMimeType: 'message/x.rsocket.routing.v0',
+    //     },
+    //     serializers:{
+    //       data: JsonSerializer,
+    //       metadata:IdentitySerializer
+    //     },
+    //     transport: new RSocketWebSocketClient({
+    //       url: 'ws://localhost:9000/'
+    //     }),
+    //   }).connect()
+    // )
+  }, []);
 
-  const bet = () => {
-    if (betAmount > balance) {
-      alert("No no");
-    } else {
-      if (isBeting) {
-        setIsBeting(false);
-        setBalance(balance + betAmount);
-        setInvestory((prev) => prev - betAmount);
-      } else {
-        setIsBeting(true);
-        setBalance(balance - betAmount);
-        setInvestory((prev) => prev + betAmount);
-      }
+  useEffect(()=>{
+
+    if(bet  && bet.autoCashout && currentMultiplier>bet.autoCashOutMultiplier){
+      setIsAutoCashOutDone(true)
     }
-  };
 
-  const sell = () => {
-    setIsSold(true);
-    setBalance(balance + currentValue * betAmount);
-    setWins((prev) => prev + currentValue * betAmount);
-    setBets((prev) => [
-      {
-        time: new Date().getTime(),
-        bet: betAmount,
-        coeff: currentValue,
-        cashOut: currentValue * betAmount,
-        profit: true,
+  },[currentMultiplier])
+
+  useEffect(() => {
+    if (isFinishedState(gameState) ) {
+        setBet(null);
+        setIsAutoCashOutDone(false)
+      }
+  }, [gameState]);
+
+  // useEffect(() => {
+  //   if (
+  //     isBeting &&
+  //     autoCashOut &&
+  //     !isSold &&
+  //     currentValue >= autoCashOutAmount &&
+  //     !gameOver
+  //   ) {
+  //     setIsSold(true);
+  //     // setBalance(balance + cashOutAmount * betAmount);
+
+  //     // setWins((prev) => prev + cashOutAmount * betAmount);
+
+  //     setBets((prev) => [
+  //       {
+  //         time: new Date().getTime(),
+  //         bet: betAmount,
+  //         coeff: autoCashOutAmount,
+  //         cashOut: autoCashOutAmount * betAmount,
+  //         profit: true,
+  //       },
+  //       ...prev,
+  //     ]);
+  //     // const audio = new Audio(success);
+  //     // if (audioPermission) {
+  //     //   audio.play();
+  //     // }
+  //   }
+  // }, [
+  //   isBeting,
+  //   autoCashOut,
+  //   isSold,
+  //   currentValue,
+  //   autoCashOutAmount,
+  //   gameOver,
+  //   audioPermission,
+  // ]);
+
+  // useEffect(() => {
+  //   if (gameOver) {
+  //     setIsBeting(false);
+  //     setIsSold(false);
+
+  //     if (isBeting && !isSold) {
+  //       setLoses((prev) => prev + betAmount);
+  //       setBets((prev) => [
+  //         {
+  //           time: new Date().getTime(),
+  //           bet: betAmount,
+  //           coeff: 0,
+  //           cashOut: 0,
+  //           profit: false,
+  //         },
+  //         ...prev,
+  //       ]);
+  //     }
+  //   }
+  // }, [gameOver, isSold]);
+
+  // useEffect(() => {
+  //   if (lottieRef?.current) {
+  //     if (isSold) {
+  //       lottieRef.current.play();
+  //     } else {
+  //       lottieRef.current.stop();
+  //     }
+  //   }
+  // }, [isSold]);
+
+//kada multiplier prodje autocashout vrednost disable dugme to je nova logika
+//  useEffect(()=>{
+
+//     if(!bet) return ;
+//     console.log('pozivam')
+//     const client1 = new RSocketClient({
+//       setup: {
+//         // ms btw sending keepalive to server
+//         keepAlive: 60000,
+//         // ms timeout if no keepalive response
+//         lifetime: 180000,
+//         // format of `data`
+//         dataMimeType: "application/json",
+//         // format of `metadata`
+//         metadataMimeType: "message/x.rsocket.routing.v0",
+//       },
+//       serializers: {
+//         data: JsonSerializer,
+//         metadata: IdentitySerializer,
+//       },
+//       transport: new RSocketWebSocketClient({
+//         url: "ws://localhost:9000/",
+//       }),
+//     }).connect();
+
+//     client1?.subscribe({
+//       onComplete: (socket) => {
+//         console.log(bet)
+//         console.log("Connected to server");
+//         const metadata = String.fromCharCode(`bet.${bet.id}`.length) + `bet.${bet.id}`;
+//         socket.requestStream({
+//           metadata: metadata,
+//         }).subscribe({
+//           onNext: (response) => {
+//             console.log("Received bet response:", response);
+//             if(response.data){
+//               const recivedBet=response.data
+//               setBetState( recivedBet && recivedBet.multiplier!=0? 'FINISHED':'RUNNING')
+//             }
+//             // Handle the incoming bet response (e.g., update state)
+//           },
+//           onError: (error) => {
+//             console.log("Error in bet stream:", error);
+//           },
+//           onComplete: () => {
+//             console.log("Bet stream completed");
+//           },
+//           onSubscribe: (subscription) => {
+//             subscription.request(2147483647); // Request a valid integer number of responses
+//           },
+//         });
+//       },
+//       onError: (error) => {
+//         console.log("Connection error:", error);
+       
+//       },
+
+//     })
+
+//   },[bet]);  
+  
+
+
+  const placeBet = () => {
+
+    const requestDataBet = {
+      amount: betAmount,
+      multiplier: currentMultiplier,
+      email: "test@gmail.com",
+      betType: "BET",
+      isAutoCashout:autoCashOut,
+      autoCashOutMultiplier: autoCashOutAmount
+    };
+
+    const client1 = new RSocketClient({
+      setup: {
+        // ms btw sending keepalive to server
+        keepAlive: 60000,
+        // ms timeout if no keepalive response
+        lifetime: 180000,
+        // format of `data`
+        dataMimeType: "application/json",
+        // format of `metadata`
+        metadataMimeType: "message/x.rsocket.routing.v0",
       },
-      ...prev,
-    ]);
-    const audio = new Audio(success);
-    if (audioPermission) {
-      audio.play();
+      serializers: {
+        data: JsonSerializer,
+        metadata: IdentitySerializer,
+      },
+      transport: new RSocketWebSocketClient({
+        url: "ws://localhost:9000/",
+      }),
+    }).connect();
+
+    client1?.subscribe({
+      onComplete: (socket) => {
+
+        socket
+          .requestResponse({
+            data: requestDataBet,
+            metadata: String.fromCharCode("bet".length) + "bet",
+          })
+          .subscribe({
+            onComplete: (response) => {
+              console.log(response.data)
+              setBet(response.data);
+            },
+
+            
+            onError: (error) => {
+              console.log("Error placing bet:", error);
+              // Handle error states
+            },
+          });
+      },
+      onError: (error) => {
+        console.log("Connection error:", error);
+        // Handle connection errors
+      },
+    });
+  };
+
+  const placeSell = () => {
+    const requestDataCancel = {
+      amount: betAmount,
+      multiplier: currentMultiplier,
+      email: "test@gmail.com",
+      betType: "CASHOUT",
+      betId: bet.id,
+    };
+    const client1 = new RSocketClient({
+      setup: {
+        // ms btw sending keepalive to server
+        keepAlive: 60000,
+        // ms timeout if no keepalive response
+        lifetime: 180000,
+        // format of `data`
+        dataMimeType: "application/json",
+        // format of `metadata`
+        metadataMimeType: "message/x.rsocket.routing.v0",
+      },
+      serializers: {
+        data: JsonSerializer,
+        metadata: IdentitySerializer,
+      },
+      transport: new RSocketWebSocketClient({
+        url: "ws://localhost:9000/",
+      }),
+    }).connect();
+
+
+    client1?.subscribe({
+      onComplete: (socket) => {
+        socket
+          .requestResponse({
+            data: requestDataCancel,
+            metadata: String.fromCharCode("bet".length) + "bet",
+          })
+          .subscribe({
+            onComplete: (r) => {
+              setBet(null);
+            },
+            onError: (error) => {
+              console.log("Error placing bet:", error);
+              // Handle error states
+            },
+          });
+      },
+      onError: (error) => {
+        console.log("Connection error:", error);
+        // Handle connection errors
+      },
+    });
+  };
+
+  const placeCancel = () => {
+    console.log("calcel");
+
+    const requestDataCancel = {
+      betType: "CANCEL",
+      betId: bet.id,
+    };
+
+    console.log(requestDataCancel);
+
+    const client1 = new RSocketClient({
+      setup: {
+        // ms btw sending keepalive to server
+        keepAlive: 60000,
+        // ms timeout if no keepalive response
+        lifetime: 180000,
+        // format of `data`
+        dataMimeType: "application/json",
+        // format of `metadata`
+        metadataMimeType: "message/x.rsocket.routing.v0",
+      },
+      serializers: {
+        data: JsonSerializer,
+        metadata: IdentitySerializer,
+      },
+      transport: new RSocketWebSocketClient({
+        url: "ws://localhost:9000/",
+      }),
+    }).connect();
+
+    client1?.subscribe({
+      onComplete: (socket) => {
+        socket
+          .requestResponse({
+            data: requestDataCancel,
+            metadata: String.fromCharCode("bet".length) + "bet",
+          })
+          .subscribe({
+            onComplete: (r) => {
+              setBet(null);
+            },
+            onError: (error) => {
+              console.log("Error placing bet:", error);
+              // Handle error states
+            },
+          });
+      },
+      onError: (error) => {
+        console.log("Connection error:", error);
+        // Handle connection errors
+      },
+    });
+  };
+
+  const handleBet = () => {
+    if (isWaitingState(gameState) && !bet) placeBet();
+    else if (isWaitingState(gameState) && bet) placeCancel();
+    else {
+      placeSell();
     }
   };
 
-  useEffect(() => {
-    if (
-      isBeting &&
-      autoCashOut &&
-      !isSold &&
-      currentValue >= cashOutAmount &&
-      !gameOver
-    ) {
-      setIsSold(true);
-      setBalance(balance + cashOutAmount * betAmount);
-
-      setWins((prev) => prev + cashOutAmount * betAmount);
-
-      setBets((prev) => [
-        {
-          time: new Date().getTime(),
-          bet: betAmount,
-          coeff: cashOutAmount,
-          cashOut: cashOutAmount * betAmount,
-          profit: true,
-        },
-        ...prev,
-      ]);
-      // const audio = new Audio(success);
-      // if (audioPermission) {
-      //   audio.play();
-      // }
-    }
-  }, [
-    isBeting,
-    autoCashOut,
-    isSold,
-    currentValue,
-    cashOutAmount,
-    gameOver,
-    audioPermission,
-  ]);
-
-  useEffect(() => {
-    if (gameOver) {
-      setIsBeting(false);
-      setIsSold(false);
-
-      if (isBeting && !isSold) {
-        setLoses((prev) => prev + betAmount);
-        setBets((prev) => [
-          {
-            time: new Date().getTime(),
-            bet: betAmount,
-            coeff: 0,
-            cashOut: 0,
-            profit: false,
-          },
-          ...prev,
-        ]);
-      }
-    }
-  }, [gameOver, isSold]);
-
-  useEffect(() => {
-    if (lottieRef?.current) {
-      if (isSold) {
-        lottieRef.current.play();
-      } else {
-        lottieRef.current.stop();
-      }
-    }
-  }, [isSold]);
 
   return (
     <Box
-      sx={{
+    style={{
         backgroundImage: "linear-gradient(-211deg, #2D274A 0%, #201C36 100%)",
         width: "100%",
         padding: "1rem",
@@ -151,7 +404,7 @@ const Bet = ({
       {" "}
       Bet
       <Box
-        sx={{
+        style={{
           width: "100%",
           height: "86%",
           display: "flex",
@@ -162,7 +415,7 @@ const Bet = ({
         }}
       >
         <Box
-          sx={{
+          style={{
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
@@ -171,21 +424,21 @@ const Bet = ({
             opacity: !gameOver || isBeting ? 0.6 : 1,
             transition: "all 0.5",
             "& *": {
-              cursor: !gameOver || isBeting ? "not-allowed" : "",
+              cursor: "pointer",
             },
 
             // alignItems: "center",
           }}
         >
           <TextInput
-            value={`${betAmount}$`}
+            value={betAmount}
             onChange={(event) =>
               setBetAmount(Number(event.target.value.replace(/\D/g, "")))
             }
             // type="number"
             variant="filled"
             color="#685ab0"
-            sx={{
+            style={{
               "& input": {
                 backgroundColor: "#4a407d",
                 color: "white",
@@ -194,10 +447,9 @@ const Bet = ({
                 borderRadius: "4px",
               },
             }}
-            readOnly={!gameOver || isBeting}
             rightSection={
               <Box
-                sx={{
+              style={{
                   display: "flex",
                   gap: "0.1rem",
                   justifyContent: "center",
@@ -215,12 +467,10 @@ const Bet = ({
                     display: "flex",
                     justifyContent: "center",
                     alignItems: "center",
-                    cursor: !gameOver || isBeting ? "not-allowed" : "pointer",
                   }}
                   onClick={() => {
-                    setBetAmount((prev) => prev + 1);
+                    setBetAmount((prev) => prev + betOptionMoney);
                   }}
-                  disabled={!gameOver || isBeting}
                 >
                   <span
                     style={{
@@ -252,12 +502,10 @@ const Bet = ({
                     display: "flex",
                     justifyContent: "center",
                     alignItems: "center",
-                    cursor: !gameOver || isBeting ? "not-allowed" : "pointer",
                   }}
-                  disabled={!gameOver || isBeting}
                   onClick={() => {
                     if (betAmount > 0) {
-                      setBetAmount((prev) => prev - 1);
+                      setBetAmount((prev) => prev - betOptionMoney);
                     }
                   }}
                 >
@@ -285,13 +533,13 @@ const Bet = ({
             }
           />
           <Box
-            sx={{
+            style={{
               display: "flex",
               justifyContent: "space-between",
               gap: isLandScape ? "1rem" : "0.3rem",
             }}
           >
-            {options.map((option) => {
+            {optionsMoneyToBet.map((option) => {
               return (
                 <button
                   key={option}
@@ -299,17 +547,17 @@ const Bet = ({
                     border: "1px solid white",
                     padding: "0.5rem",
                     color: "#8674e3",
-                    border: "1px solid #685ab0",
+                    border: "1px solid ",
+                    borderColor:
+                      option === betOptionMoney ? "#008563" : "#685ab0",
                     width: "100%",
                     background: "transparent",
-                    cursor: !gameOver || isBeting ? "not-allowed" : "pointer",
                     whiteSpace: "nowrap",
                     borderRadius: "4px",
                   }}
                   onClick={() => {
-                    setBetAmount((prev) => prev + option);
+                    setBetOptionMoney(option);
                   }}
-                  disabled={!gameOver || isBeting}
                 >
                   {option} $
                 </button>
@@ -317,7 +565,7 @@ const Bet = ({
             })}
           </Box>
           <Box
-            sx={{
+            style={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
@@ -325,31 +573,33 @@ const Bet = ({
           >
             <Text>Auto Cashout</Text>
             <Switch
-              color="ocean-blue"
+            color="green"
+            
               value={autoCashOut}
               onChange={() => setAutoCashOut(!autoCashOut)}
               size="xs"
-              disabled={!gameOver || isBeting}
-              sx={{
+              style={{
                 "& .mantine-Switch-track": {
                   background: autoCashOut
-                    ? `#01EFB7 !important`
+                    ? `red !important`
                     : `gray !important`,
                   border: "none",
-                  cursor: !gameOver || isBeting ? "not-allowed" : "pointer",
+                },
+                '& .mantine-Switch-thumb': {
+                  backgroundColor: 'red !important' , // Your custom color
                 },
               }}
             />
           </Box>
           <TextInput
-            value={`${cashOutAmount}x`}
+            value={`${autoCashOutAmount}x`}
             onChange={(event) =>
-              setCashOutAmount(Number(event.target.value.replace(/\D/g, "")))
+              setAutoCashOutAmount(Number(event.target.value.replace(/\D/g, "")))
             }
             // type="number"
             variant="filled"
             color="#685ab0"
-            sx={{
+            style={{
               "& input": {
                 backgroundColor: "#4a407d00",
                 color: "white",
@@ -360,7 +610,7 @@ const Bet = ({
             }}
             rightSection={
               <Box
-                sx={{
+              style={{
                   display: "flex",
                   gap: "0.1rem",
                   justifyContent: "center",
@@ -378,11 +628,9 @@ const Bet = ({
                     display: "flex",
                     justifyContent: "center",
                     alignItems: "center",
-                    cursor: !gameOver || isBeting ? "not-allowed" : "pointer",
                   }}
-                  disabled={!gameOver || isBeting}
                   onClick={() => {
-                    setCashOutAmount((prev) =>
+                    setAutoCashOutAmount((prev) =>
                       Number(Number(prev) + 0.1).toFixed(1)
                     );
                   }}
@@ -416,12 +664,10 @@ const Bet = ({
                     display: "flex",
                     justifyContent: "center",
                     alignItems: "center",
-                    cursor: !gameOver || isBeting ? "not-allowed" : "pointer",
                   }}
-                  disabled={!gameOver || isBeting}
                   onClick={() => {
-                    if (cashOutAmount > 0) {
-                      setCashOutAmount((prev) =>
+                    if (autoCashOutAmount > 0) {
+                      setAutoCashOutAmount((prev) =>
                         Number(Number(prev) - 0.1).toFixed(1)
                       );
                     }
@@ -452,16 +698,9 @@ const Bet = ({
           />
         </Box>
         <Button
-          sx={{
-            backgroundColor: gameOver
-              ? isBeting
-                ? "#880031" // Plava boja za isBeting i gameOver
-                : "#006385" // Zelena boja za !isBeting i gameOver
-              : isBeting
-              ? currentValue < prevValue
-                ? "#880031" // Crvena boja za isBeting, currentValue < prevValue
-                : "#008563" // Zelena boja za isBeting, currentValue >= prevValue
-              : "#008563", // Zelena boja kao osnovna
+          disabled={(!bet && (isStartedState(gameState)) || gameOver || isAutoCashOutDone)}
+          style={{
+            backgroundColor: (!bet && (isStartedState(gameState)) || gameOver || isAutoCashOutDone)?  'gray' :'#008563' ,
             boxShadow: "inset 0px -4px -4px 10px rgba(0, 0, 0, 0.25)",
             transition: "background-color 0.5s", // Dodavanje tranzicije za boju
             width: "100%",
@@ -473,29 +712,38 @@ const Bet = ({
             border: "none",
             outline: "none",
             filter: "drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))",
-            "&:hover": {
-              backgroundColor: gameOver
-                ? isBeting
-                  ? "#88003199" // Plava boja za isBeting i gameOver na hover
-                  : "#00638599" // Zelena boja za !isBeting i gameOver na hover
-                : isBeting
-                ? currentValue < prevValue
-                  ? "#88003199" // Crvena boja za isBeting, currentValue < prevValue na hover
-                  : "#00856399" // Zelena boja za isBeting, currentValue >= prevValue na hover
-                : "#00856399", // Zadržava istu zelenu boju kao osnovna na hover
-              boxShadow: "inset 0px -4px -4px 10px rgba(0, 0, 0, 0.25)", // Zadržava isti shadow na hover
-            },
+            // "&:hover": {
+            //   backgroundColor: gameOver
+            //     ? isBeting
+            //       ? "#88003199" // Plava boja za isBeting i gameOver na hover
+            //       : "#00638599" // Zelena boja za !isBeting i gameOver na hover
+            //     : isBeting
+            //     ? currentValue < prevValue
+            //       ? "#88003199" // Crvena boja za isBeting, currentValue < prevValue na hover
+            //       : "#00856399" // Zelena boja za isBeting, currentValue >= prevValue na hover
+            //     : "#00856399", // Zadržava istu zelenu boju kao osnovna na hover
+            //   boxShadow: "inset 0px -4px -4px 10px rgba(0, 0, 0, 0.25)", // Zadržava isti shadow na hover
+            // },
           }}
-          disabled={(!gameOver && !isBeting) || isSold}
-          onClick={gameOver ? bet : sell}
+          // disabled={(!isPlaying && !isBeting) || isSold}
+          onClick={handleBet}
         >
-          {gameOver ? (isBeting ? "Cancel" : "Bet") : isSold ? "Sold" : "Sell"}
+          {isWaitingState(gameState) && !bet
+            ? "Bet"
+            : isWaitingState(gameState) && bet
+            ? "Cancel"
+            : isStartedState(gameState) && !bet
+            ? "Bet"
+            : isFinishedState(gameState) || isAutoCashOutDone
+            ? "Bet" : "Sell"}
+
+          {/* {gameOver ? (isBeting ? "Cancel" : "Bet") : isSold ? "Sold" : "Sell"}
           <br />
           {!gameOver &&
             isBeting &&
             prevValue > currentValue &&
             !isSold &&
-            "50%"}
+            "50%"} */}
         </Button>
       </Box>
     </Box>

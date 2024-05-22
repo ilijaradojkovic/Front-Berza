@@ -1,33 +1,31 @@
 import { useEffect, useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
+
 import "./App.css";
-import ChartTest from "./components/ChartTest";
+
 import { Box } from "@mantine/core";
 import Aside from "./components/Aside";
-import Footer from "./components/Footer";
-import History from "./components/History";
+
 import { MantineProvider } from "@mantine/core";
 import Navbar from "./components/Navbar";
 import { useViewportSize } from "@mantine/hooks";
 import { useLocalStorage } from "./hooks/useLocalStorage";
-import KonvaChart from "./components/KonvaChart";
-// import PhaserGame from "./components/PhaserGame";
-import RechartsChart from "./components/RechartsChart";
+
 import RechartsChart2 from "./components/RechartsChart2";
+import { RSocketClient } from 'rsocket-core';
+import RSocketWebsocketClient from 'rsocket-websocket-client';
+
 
 function App() {
-  const [count, setCount] = useState(0);
-  const [start, setStart] = useState(false);
   const [isLandScape, setIsLandscape] = useState(false);
   const [balance, setBalance] = useLocalStorage("balance", 10000);
-
+  const [lastValue, setLastValue] = useState(0);
   const { width, height } = useViewportSize();
-
-  const [bets, setBets] = useLocalStorage("bets", []);
+  //Ovde je bilo useLocalStorage("bets",[])
+  const [bets, setBets] = useState([]);
 
   const [audioPermission, setAudioPermission] = useState(false);
-
+  const [gameState,setGameState]=useState("");
+  const [tick,setTick]=useState(0)
   useEffect(() => {
     if (width > height) {
       setIsLandscape(true);
@@ -36,7 +34,63 @@ function App() {
     }
   }, [width, height]);
 
+
+
+  //init socket connection
+  useEffect(()=>{
+
+    const client = new RSocketClient({
+      setup: {
+        // ms btw sending keepalive to server
+        keepAlive: 60000,
+        // ms timeout if no keepalive response
+        lifetime: 180000,
+        // format of `data`
+        dataMimeType: 'application/json',
+        // format of `metadata`
+        metadataMimeType: 'message/x.rsocket.routing.v0',
+      },
+      transport: new RSocketWebsocketClient({
+        url: 'ws://localhost:9000/'
+      }),
+    });
+    
+    client.connect().subscribe({
+      onComplete: socket => {
+        socket.requestStream({
+          metadata: String.fromCharCode('game-state'.length) + 'game-state',
+        }).subscribe({
+          onComplete: () => {
+            console.log('complete');
+          },
+          onError: error => {
+            console.log(error);
+          },
+          onNext: payload => {
+
+            let dataFromSocket=JSON.parse(payload.data)
+            setTick(dataFromSocket.tick)
+            setLastValue(dataFromSocket.lastValue)
+            if(dataFromSocket.gameState!==gameState)
+              setGameState(dataFromSocket.gameState)
+            },
+          onSubscribe: subscription => {
+            subscription.request(2147483647);
+          },
+        });
+      },
+      onError: error => {
+        console.log(error);
+      },
+      onSubscribe: cancel => {
+      }
+    });
+  },[])
+
+
+
   return (
+    
     <MantineProvider
       theme={{
         colors: {
@@ -61,11 +115,12 @@ function App() {
             "#C50E82",
             "#AD1374",
           ],
+          "purple-border":['#3F347D']
         },
       }}
     >
       <Box
-        sx={{
+        style={{
           display: "flex",
           flexDirection: "column",
           padding: isLandScape ? "2rem" : "1rem",
@@ -81,32 +136,34 @@ function App() {
           audioPermission={audioPermission}
         />
         <Box
-          sx={{
+          style={{
             display: "flex",
             flexDirection: isLandScape ? "row" : "column-reverse",
-            gap: "1rem",
             justifyContent: "space-between",
+
           }}
         >
           <Aside isLandScape={isLandScape} bets={bets} />
           <Box
-            sx={{
+            style={{
               display: "flex",
               flexDirection: "column",
+
             }}
           >
-            {/* <ChartTest start={start} isLandScape={isLandScape} setBalance={setBalance} balance={balance} bets={bets} setBets={setBets}/> */}
-            {/* <RechartsChart start={start} isLandScape={isLandScape} setBalance={setBalance} balance={balance} bets={bets} setBets={setBets}/> */}
-            {/* <KonvaChart start={start} isLandScape={isLandScape} setBalance={setBalance} balance={balance} bets={bets} setBets={setBets}/> */}
-            {/* <PhaserGame isLandScape={isLandScape}/> */}
+    
             <RechartsChart2
-              start={start}
               isLandScape={isLandScape}
               setBalance={setBalance}
               balance={balance}
               bets={bets}
               setBets={setBets}
               audioPermission={audioPermission}
+              gameState={gameState}
+              tick={tick}
+              lastValue={lastValue}
+            
+              
             />
           </Box>
         </Box>

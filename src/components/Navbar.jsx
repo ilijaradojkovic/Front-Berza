@@ -18,7 +18,7 @@ const Navbar = ({
 }) => {
   return (
     <Box
-      sx={{
+      style={{
         display: "flex",
         color: "white",
         justifyContent: "space-between",
@@ -31,7 +31,7 @@ const Navbar = ({
       <img src={logo} alt="logo" />
       {isLandScape && (
         <Box
-          sx={{
+        style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -52,7 +52,7 @@ const Navbar = ({
         </Box>
       )}
       <Box
-        sx={{
+        style={{
           border: "1px solid #3F347D",
           padding: isLandScape ? "0.6rem" : "0.1rem",
           paddingInline: isLandScape ? "0.6rem" : "0.3rem",
@@ -61,6 +61,7 @@ const Navbar = ({
           alignItems: "center",
           justifyContent: "center",
           gap: isLandScape ? "0.6rem" : "0.3rem",
+        
         }}
       >
         <b>BALANCE:</b> {balance && thousandSeparator(balance)}${" "}
@@ -83,9 +84,9 @@ const Navbar = ({
             fontWeight: "600",
           }}
         >
-          {/* <span
+          <span
             style={{
-              // color: "#fff",
+              color: "#fff",
               background: "#199bf5",
               borderRadius: "50%",
               width: "20px",
@@ -95,19 +96,18 @@ const Navbar = ({
               alignItems: "center",
               fontSize: "1.2rem",
               fontWeight: "600",
-              // paddingTop: "2px",
-              //   paddingBottom: "3px",
-              // paddingLeft: "1px",
+        
             }}
-          > */}
+          >
             +
-          {/* </span> */}
+          </span>
         </button>
+        
       </Box>
       {isLandScape && (
         <>
           <Box
-            sx={{
+            style={{
               display: "flex",
               alignItems: "center",
               gap: "1rem",
@@ -153,7 +153,7 @@ const Navbar = ({
             />
           </Box>
           <Box
-            sx={{
+            style={{
               display: "flex",
               alignItems: "center",
               gap: "1rem",
@@ -169,17 +169,18 @@ const Navbar = ({
               }}
             />
             <Box
-              sx={{
+              style={{
                 display: "flex",
                 flexDirection: "column",
 
                 justifyContent: "flex-end",
-                alignItems: "flex-end",
+                alignItems: "flex-start",
+                
               }}
             >
               <Box>Leslie Alexander</Box>
               <Box
-                sx={{
+                style={{
                   display: "flex",
                   alignItems: "center",
                   gap: "0.5rem",
