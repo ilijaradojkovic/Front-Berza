@@ -1,22 +1,35 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import logo from "../assets/images/logo.png";
-import { Box } from "@mantine/core";
+import { Box, Menu } from "@mantine/core";
 import home from "../assets/images/home.png";
 import sound from "../assets/images/sound.png";
 import settings from "../assets/images/settings.png";
 import bell from "../assets/images/bell.png";
 import profile from "../assets/images/profile.png";
 import logout from "../assets/images/logout.png";
-import { Menu } from "@mui/icons-material";
 import { thousandSeparator } from "../helpers/formatNumbers";
+import { MenuComponent } from "./menu/Menu";
 
 const Navbar = ({
   isLandScape,
-  balance,
+  currentUser,
   setAudioPermission,
   audioPermission,
+ isSoundOn, 
+  isMusicOn, 
+ isAnimationOn,
+ toggleSoundSetting,
+ toggleMusicSetting,
+ toggleAnimationSetting
 }) => {
+
+  const [openMenu,setOpenMenu] = useState(false)
+  const handleOpenMenu=()=>{
+    setOpenMenu(!openMenu)
+  }
   return (
+    
+
     <Box
       style={{
         display: "flex",
@@ -26,12 +39,13 @@ const Navbar = ({
         marginBottom: "1rem",
         position: "relative",
         zIndex: "1",
+        backgroundColor: "",
       }}
     >
       <img src={logo} alt="logo" />
       {isLandScape && (
         <Box
-        style={{
+          style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -61,10 +75,11 @@ const Navbar = ({
           alignItems: "center",
           justifyContent: "center",
           gap: isLandScape ? "0.6rem" : "0.3rem",
-        
         }}
       >
-        <b>BALANCE:</b> {balance && thousandSeparator(balance)}${" "}
+        <b>BALANCE:</b>{" "}
+        {currentUser?.balance && thousandSeparator(currentUser?.balance)}{" "}
+        {currentUser?.casino.currency.name}{" "}
         <button
           style={{
             width: isLandScape ? "20px" : "16px",
@@ -96,106 +111,69 @@ const Navbar = ({
               alignItems: "center",
               fontSize: "1.2rem",
               fontWeight: "600",
-        
             }}
           >
             +
           </span>
         </button>
-        
       </Box>
       {isLandScape && (
-        <>
+        <Box
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "1rem",
+            position:'relative',
+          }}
+        >
+          <img
+            src={profile}
+            alt="profile"
+            style={{
+              border: "1px solid #3F347D",
+              padding: "0.5rem",
+              objectFit: "contain",
+              cursor: "pointer", // Add cursor pointer to indicate clickability
+            }}
+            onClick={handleOpenMenu}
+          />
           <Box
             style={{
               display: "flex",
-              alignItems: "center",
-              gap: "1rem",
+              flexDirection: "column",
+              justifyContent: "flex-end",
+              alignItems: "flex-start",
             }}
           >
-            {/* <button
-              
-              style={{
-                border: "none",
-                outline: "none",
-                background: "transparent",
-                cursor: "pointer",
-              }}
-            > */}
-              <img
-                src={sound}
-                alt="sound"
-                style={{
-                  // border: audioPermission ? "1px solid #3F347D" : "1px solid #3F347D08",
-                  border: "1px solid #3F347D",
-                  padding: "0.6rem",
-                  objectFit: "contain",
-                }}onClick={() => setAudioPermission(!audioPermission)}
-              />
-            {/* </button> */}
-            <img
-              src={settings}
-              alt="settings"
-              style={{
-                border: "1px solid #3F347D",
-                padding: "0.5rem",
-                objectFit: "contain",
-              }}
-            />
-            <img
-              src={bell}
-              alt="bell"
-              style={{
-                border: "1px solid #3F347D",
-                padding: "0.6rem 0.4rem 0.1rem",
-                objectFit: "contain",
-              }}
-            />
-          </Box>
-          <Box
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "1rem",
-            }}
-          >
-            <img
-              src={profile}
-              alt="profile"
-              style={{
-                border: "1px solid #3F347D",
-                padding: "0.5rem",
-                objectFit: "contain",
-              }}
-            />
+            <Box>Leslie Alexander</Box>
             <Box
               style={{
                 display: "flex",
-                flexDirection: "column",
-
-                justifyContent: "flex-end",
-                alignItems: "flex-start",
-                
+                alignItems: "center",
+                gap: "0.5rem",
+                color: "#7864cc",
               }}
             >
-              <Box>Leslie Alexander</Box>
-              <Box
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  color: "#7864cc",
-                }}
-              >
-                <img src={logout} alt="logout" />
-                Logout
-              </Box>
+              <img src={logout} alt="logout" />
+              Logout
             </Box>
           </Box>
-        </>
+          <MenuComponent
+              isMenuOpened={openMenu}
+              isAnimationOn={isAnimationOn}
+              isSoundOn={isSoundOn}
+              isMusicOn={isMusicOn}
+              toggleAnimationSetting={toggleAnimationSetting}
+              toggleMusicSetting={toggleMusicSetting}
+              toggleSoundSetting={toggleSoundSetting}
+              currentUser={currentUser}
+          />
+
+        </Box>
       )}
-      {!isLandScape && <Menu />}
+      {/* {!isLandScape && <Menu />} */}
     </Box>
+
   );
 };
 

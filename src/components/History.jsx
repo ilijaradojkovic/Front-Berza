@@ -1,66 +1,75 @@
-import { Box, Button, ScrollArea } from "@mantine/core";
+import { Box, Button, ScrollArea,Modal } from "@mantine/core";
 import React, { useEffect, useState } from "react";
 import { getHistoryOfGames } from "../rest/api";
 import { useQuery } from "react-query";
+import {GameHistory} from "./GameHistory.jsx";
+import { useDisclosure } from "@mantine/hooks";
 
 const History = ({ gameState }) => {
   const [page, setPage] = useState(0);
-  const [size, setSize] = useState(20);
+  const [size, setSize] = useState(14);
+  const [opened, { open, close }] = useDisclosure(false);
 
   const { data, refetch } = useQuery(["historyGames"], () =>
     getHistoryOfGames(page, size)
   );
 
   useEffect(() => {
-    console.log(data);
     refetch();
   }, [gameState]);
   return (
-    <Box
-      style={{
-        display: "flex",
-        color: "white",
-        gap: "1rem",
-        paddingLeft: "1rem",
-        alignItems: "flex-start",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
+    <>
+      <Modal
+        opened={opened}
+        onClose={close}
+        size="xl"
+        withCloseButton={false}
+        padding="0px"
+      >
+        <GameHistory close={close} />
+      </Modal>
       <Box
         style={{
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          color: "white",
           gap: "1rem",
+          paddingLeft: "1rem",
+          alignItems: "center", // Center alignment vertically
+          overflow: "hidden",
         }}
       >
-        History
-      </Box>
+        <Box
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: "1rem",
+          }}
+        
+        >
+          History
+        </Box>
 
+        <Button
+          style={{
+            backgroundColor: "#3eb89b",
+            padding: "0.5rem",
+            width: "5rem",
+            textAlign: "center",
+            borderRadius: "0.2rem",
+          }}
+          onClick={()=>open()}
+        >
+          See All
+        </Button>
 
-      <Button
-        style={{
-          backgroundColor: "#3eb89b",
-          padding: "0.5rem",
-          width: "5rem",
-          textAlign: "center",
-          borderRadius: "0.2rem",
-          
-        }}
-      >
-        See All
-      </Button>
-
-      <ScrollArea
-        color="silver"
-        scrollbarSize={0}
-        scrollbars="x"
-        style={{
-          width: "68vw",
-        }}
-      >
-        <Box style={{ display: "flex", gap: "1rem" }}>
+        <Box
+          style={{
+            display: "flex",
+            gap: "1rem",
+            flexWrap: "nowrap", // Prevent wrapping
+          }}
+        >
           {data?.data?.map((item, index) => (
             <Box
               key={index}
@@ -81,20 +90,22 @@ const History = ({ gameState }) => {
               {item.multiplier}
             </Box>
           ))}
-          <Box
-            style={{
-              position: "absolute",
-              top: "0",
-              left: "0",
-              width: "68vw",
-              height: "100%",
-              backgroundImage:
-                "linear-gradient(to right, #00000000 90%, #1e1933 100%)",
-            }}
-          />
         </Box>
-      </ScrollArea>
-    </Box>
+
+        <Box
+          style={{
+            position: "absolute",
+            top: "0",
+            right: "0",
+            width: "68vw",
+            height: "100%",
+            backgroundImage:
+              "linear-gradient(to right, #00000000 90%, #1e1933 100%)",
+            pointerEvents: "none", // Ensure it does not block interaction with the ScrollArea
+          }}
+        />
+      </Box>
+    </>
   );
 };
 

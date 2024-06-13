@@ -4,17 +4,17 @@ import { timeFormat } from "../util/date-util";
 import { formatToTwoDecimals } from "../util/number-util";
 import { useEffect } from "react";
 
-export const TopWins=({topWinsType})=>{
+export const TopWins=({topWinsType,groupByType,currentUser})=>{
 
     let size = 10;
     let page = 0;
   
-    const { data,refetch } = useQuery(["topBets"], () =>  getBetsTopWins(page, size,topWinsType) );
+    const { data,refetch } = useQuery(["topBets"], () =>  getBetsTopWins(page, size,topWinsType,groupByType,currentUser?.email) );
 
     useEffect(()=>{
         
             refetch()
-    },[topWinsType])
+    },[topWinsType,groupByType])
  
     return (
         <tbody  style={{width:'100%',overflowY: 'auto' ,height:'10vh'}}>

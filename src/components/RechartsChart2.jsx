@@ -35,8 +35,13 @@ import money from "../assets/lottie/money.json";
 import explosion from "../assets/lottie/explosion3.json";
 import fail from "../assets/sounds/boom.wav";
 import timer from "../assets/sounds/timer.wav";
-import { isFinishedState, isStartedState, isWaitingState } from "./util/game-state";
-import { useSpring ,animated } from "react-spring";
+import {
+  isFinishedState,
+  isStartedState,
+  isWaitingState,
+} from "./util/game-state";
+import { useSpring, animated } from "react-spring";
+import { greenColor, redColor } from "../colors/colors";
 
 const CustomDot = ({ x, y, value, isLandScape, gameOver, audioPermission }) => {
   const animContainer = useRef(null);
@@ -153,13 +158,13 @@ const RechartsChart2 = ({
   audioPermission,
   gameState,
   tick,
-  lastValue
+  lastValue,
+  currentUser,
+  isAnimationOn,
 }) => {
-
-
   const { width, height } = useViewportSize();
   const [isBackgroundPlaying, setIsBackgroundPlaying] = useState(true);
-  const [isPlaying,setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const [chartData, setChartData] = useState([]);
   const [currentMultiplier, setCurrentMultiplier] = useState(0);
@@ -183,27 +188,51 @@ const RechartsChart2 = ({
   const [history, setHistory] = useLocalStorage("history", []);
   const [maxY, setMaxY] = useState(1);
 
-  
+  const [prevPoint, setPrevPoint] = useState(1);
 
- 
+  const [segments, setSegments] = useState([]);
+  const [isGoingDown,setIsGodingDown]=useState(false)
+
   useEffect(() => {
     console.log(gameState);
-      setIsPlaying(false)
-      setGameOver(false)
+    setIsPlaying(false);
+    setGameOver(false);
     if (isWaitingState(gameState)) {
       console.log("RESTARTING GAME DATA");
-      setCurrentMultiplier(0)
+      setCurrentMultiplier(0);
       setChartData([]);
-    }else if(isStartedState(gameState)){
-      setIsPlaying(true)
+      setSegments([]);
+    } else if (isStartedState(gameState)) {
+      setIsPlaying(true);
+    } else if (isFinishedState(gameState)) {
+      setGameOver(true);
     }
-    else if(isFinishedState(gameState)){
-      setGameOver(true)
-    }
-
   }, [gameState]);
 
-  
+  const splitDataIntoSegments = (data) => {
+    const segments = [];
+    if (data.length < 2) {
+      return segments;
+    }
+
+    let currentSegment = { data: [data[0]], color: greenColor };
+    for (let i = 1; i < data.length; i++) {
+      const prevPoint = data[i - 1];
+      
+      const currPoint = data[i];
+    
+      const color = currPoint.y >= prevPoint.y ? greenColor : redColor;
+      setIsGodingDown(! (currPoint.y >= prevPoint.y))
+      if (color === currentSegment.color) {
+        currentSegment.data.push(currPoint);
+      } else {
+        segments.push(currentSegment);
+        currentSegment = { data: [prevPoint, currPoint], color };
+      }
+    }
+    segments.push(currentSegment);
+    return segments;
+  };
 
   useEffect(() => {
     const client = new RSocketClient({
@@ -218,7 +247,7 @@ const RechartsChart2 = ({
         metadataMimeType: "message/x.rsocket.routing.v0",
       },
       transport: new RSocketWebsocketClient({
-        url: "ws://localhost:9000/",
+        url: "ws://localhost:9001/",
       }),
     });
 
@@ -239,13 +268,15 @@ const RechartsChart2 = ({
               // addErrorMessage("Connection has been closed due to ", error);
             },
             onNext: (payload) => {
-              let socketData=JSON.parse(payload.data);
-              // console.log(socketData);
+              let socketData = JSON.parse(payload.data);
+              console.log(payload)
               setCurrentMultiplier(socketData.y);
-              setChartData((prevChart) => [
-                ...prevChart,
-                socketData
-              ]);
+              setChartData((prevChart) => {
+                const newChart = [...prevChart, socketData];
+                const newSegments = splitDataIntoSegments(newChart);
+                setSegments(newSegments);
+                return newChart;
+              });
               // updateState(payload.data);
             },
             onSubscribe: (subscription) => {
@@ -256,10 +287,9 @@ const RechartsChart2 = ({
       onError: (error) => {
         console.log(error);
         // addErrorMessage("Connection has been refused due to ", error);
-      }
+      },
     });
   }, []);
-
 
   const bgMoving = keyframes({
     "0%": {
@@ -279,15 +309,16 @@ const RechartsChart2 = ({
 
   return (
     <Box
-    style={{
+      style={{
         display: "flex",
         flexDirection: "column",
         gap: "1rem",
-        position:'relative'
+        position: "relative",
+        height:'100%',
       }}
     >
-   
       <History gameState={gameState} />
+
       <Box
         style={{
           backgroundImage: `url(${graphbg})`,
@@ -297,7 +328,7 @@ const RechartsChart2 = ({
           backgroundAttachment: "fixed",
           transition: "all 0.1s",
           backgroundRepeat: "repeat",
-          width: isLandScape ? width / 1.3 : "100%",
+          width:  "100%",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
@@ -307,8 +338,23 @@ const RechartsChart2 = ({
           boxShadow: "0 0 1rem rgba(0,0,0,0.2)",
           animation: `${bgMoving} 4s linear infinite`,
           animationPlayState: isBackgroundPlaying ? "running" : "paused",
+          position: "relative",
+          flex:1
         }}
       >
+        {(isWaitingState(gameState) || isFinishedState(gameState)) && (
+          <Box
+            style={{
+              backgroundSize: " 50% auto",
+              backgroundPositionX: `0%`,
+              backgroundPositionY: `0%`,
+              position: "absolute",
+              backgroundColor: "rgba(0, 0, 0, 0.6)", // Transparent black background
+              width: "100%",
+              height: "100%",
+            }}
+          ></Box>
+        )}
         <Box
           style={{
             position: "relative",
@@ -317,44 +363,51 @@ const RechartsChart2 = ({
           width={isLandScape ? width / 1.4 : width / 1.1}
           height={isLandScape ? height / 2.27 : height / 3.5}
         >
-          <LineChart
-            width={isLandScape ? width / 1.4 : width / 1.1}
-            height={isLandScape ? height / 2.27 : height / 3.5}
-            data={chartData}
-            margin={{
-              top: 5,
-              right: isLandScape ? 30 : 20,
-              left: isLandScape ? 20 : 0,
-              bottom: isLandScape ? 5 : 0,
-            }}
-            style={{
-              overflow: "visible !important",
-            }}
-          >
-            <defs>
-              <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#01f213" stopOpacity={1} />
-                <stop offset="95%" stopColor="#FF003c" stopOpacity={1} />
-              </linearGradient>
-            </defs>
-            <XAxis dataKey="x" type="number" domain={[0, 80]} />
-            <YAxis
-              domain={[0, maxY + 1]}
-              tickFormatter={(value) => value.toFixed(1)}
-            />
-            <Line
-              type="monotone"
-              dataKey="y"
-              stroke="url(#colorUv)"
-              isAnimationActive={true}
-              animationDuration={100}
-              animationEasing="ease-out"
-              strokeWidth={3}
-              dot={false}
+          
+            <LineChart
+              width={isLandScape ? width / 1.4 : width / 1.1}
+              height={isLandScape ? height / 2.27 : height / 3.5}
+              data={chartData}
+              margin={{
+                top: 5,
+                right: isLandScape ? 30 : 20,
+                left: isLandScape ? 20 : 0,
+                bottom: isLandScape ? 5 : 0,
+              }}
+              style={{
+                overflow: "visible !important",
+                width:'100%',
+                height:'100%'
+              }}
             >
-            </Line>
-   
-          </LineChart>
+              <defs>
+                <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#008563" stopOpacity={1} />
+                  <stop offset="95%" stopColor="#FF003c" stopOpacity={1} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="x" type="number" domain={[0, 80]} />
+              <YAxis
+                domain={[0, maxY + 1]}
+                tickFormatter={(value) => value.toFixed(1)}
+              />
+            {isAnimationOn &&   segments.map((segment, index) => (
+                <Line
+                  key={index}
+                  type="monotone"
+                  dataKey="y"
+                  data={segment.data}
+                  stroke={segment.color}
+                  strokeWidth={3}
+                  dot={false}
+                  isAnimationActive={true}
+                  animationDuration={100}
+                  animationEasing="ease-out"
+                />
+              ))
+              }
+            </LineChart>
+          )
           {/* //Konfete animacija,kad predje odredjeni broj  */}
           {/* <Box
             style={{
@@ -424,32 +477,33 @@ const RechartsChart2 = ({
               left: "50%",
               transform: `translate(-50%, -50%)`,
               fontSize: isLandScape ? "3rem" : "2rem",
-              color:'white',
+              color: "white",
               fontWeight: "bold",
               zIndex: 100,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              textAlign: 'center',
-            
+              textAlign: "center",
             }}
           >
-          {
-            (gameOver)? <div >
-            Flew Away!<br />
-            {lastValue}
-          </div>
-            :
-          isPlaying ?       <animated.span>{springProps.currentMultiplier.interpolate((val) =>val.toFixed(2))}</animated.span>
-          : `Waiting for player ${10 - tick}`}
-           
-          </Box>  
-      
-            
+            {gameOver ? (
+              <div>
+                Flew Away!
+                <br />
+                {lastValue}
+              </div>
+            ) : isPlaying ? (
+              <animated.span>
+                {springProps.currentMultiplier.to((val) => val.toFixed(2))}
+              </animated.span>
+            ) : (
+              `Waiting for player ${10 - tick}`
+            )}
+          </Box>
         </Box>
         {isLandScape && (
           <Box
-          style={{
+            style={{
               display: "flex",
               width: "100%",
               justifyContent: "stretch",
@@ -462,7 +516,7 @@ const RechartsChart2 = ({
                 width: "100%",
                 textAlign: "center",
                 backgroundImage:
-                  "linear-gradient(136deg, #2C264A 0%, #4A407D 100%);",
+                  "linear-gradient(136deg, #2C264A 0%, #4A407D 100%)",
                 padding: "10px",
                 display: "flex",
                 justifyContent: "center",
@@ -484,7 +538,7 @@ const RechartsChart2 = ({
                 width: "100%",
                 textAlign: "center",
                 backgroundImage:
-                  "linear-gradient(136deg, #2C264A 0%, #4A407D 100%);",
+                  "linear-gradient(136deg, #2C264A 0%, #4A407D 100%)",
                 padding: "10px",
                 display: "flex",
                 justifyContent: "center",
@@ -506,7 +560,7 @@ const RechartsChart2 = ({
                 width: "100%",
                 textAlign: "center",
                 backgroundImage:
-                  "linear-gradient(136deg, #2C264A 0%, #4A407D 100%);",
+                  "linear-gradient(136deg, #2C264A 0%, #4A407D 100%)",
                 padding: "10px",
                 display: "flex",
                 justifyContent: "center",
@@ -547,7 +601,8 @@ const RechartsChart2 = ({
         gameState={gameState}
         isPlaying={isPlaying}
         currentMultiplier={currentMultiplier}
-    
+        currentUser={currentUser}
+        isGoingDown={isGoingDown}
       />
     </Box>
   );

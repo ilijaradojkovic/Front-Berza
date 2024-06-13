@@ -4,10 +4,14 @@ import { AllBets } from "./all-bets/AllBets";
 import { MyBets } from "./my-bets/MyBets";
 import { TopWins } from "./top-bets/TopWins";
 import { Box, Button, Table } from "@mantine/core";
+import { useQuery } from "react-query";
+import { fetchUser } from "../rest/api";
 
-const Aside = ({ isLandScape, bets }) => {
+const Aside = ({ isLandScape, bets,currentUser }) => {
   const [activeButton, setActiveButton] = useState(0);
   const [topWinsType, setTopWinsType] = useState(0);
+  const [groupByType, setGroupByType] = useState(0);
+  const [betCount,setBetCount]=useState(0)
   const buttons = [
     {
       name: "All Bets",
@@ -23,21 +27,33 @@ const Aside = ({ isLandScape, bets }) => {
     },
   ];
 
+
+
   const tableHeaders = ["Time", "Bet", "Coeff.", "Cash out", "PF"];
 
   const toggleTopWinsType = (type) => {
     setTopWinsType(type);
   };
 
+  const toogleGroupBy=(type)=>{
+    setGroupByType(type)
+  }
+
+  const notifyIncomingBets=(bets)=>{
+    if(bets)
+    setBetCount(bets.length)
+  }
+
   return (
     <Box
-    style={{
+      style={{
+      
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        backgroundColor:'blue',
-        width:'100%'
-        
+        backgroundColor: "blue",
+        width: "100%",
+        height:'100%'
       }}
     >
       <Box
@@ -72,7 +88,6 @@ const Aside = ({ isLandScape, bets }) => {
                 borderRadius: "0rem",
                 color: "white",
                 width: "100%",
-                
               }}
             >
               {button.name}
@@ -80,67 +95,123 @@ const Aside = ({ isLandScape, bets }) => {
           ))}
         </Box>
         {activeButton === 2 && (
-          <Box
-          style={{
-              display: "flex",
-              justifyContent: "center",
-              gap: "1rem",
-              marginBottom: "1rem",
-            }}
-          >
+          <Box>
             <Box
               style={{
-                padding: "0.5rem",
-                color: "white",
-                borderRadius: "0.2rem",
-                border: topWinsType == 0 ? "1px solid" : "",
-                cursor: "pointer",
+                display: "flex",
+                justifyContent: "center",
+                gap: "1rem",
+                marginBottom: "1rem",
               }}
-              onClick={() => toggleTopWinsType(0)}
             >
-              MULTIPLIERS
+              <Box
+                style={{
+                  padding: "0.5rem",
+                  color: "white",
+                  borderRadius: "0.2rem",
+                  border: topWinsType == 0 ? "1px solid" : "",
+                  cursor: "pointer",
+                }}
+                onClick={() => toggleTopWinsType(0)}
+              >
+                MULTIPLIERS
+              </Box>
+              <Box
+                style={{
+                  padding: "0.5rem",
+                  color: "white",
+                  borderRadius: "0.2rem",
+                  border: topWinsType == 1 ? "1px solid" : "",
+                  cursor: "pointer",
+                }}
+                onClick={() => toggleTopWinsType(1)}
+              >
+                BIGGEST WINS
+              </Box>
             </Box>
             <Box
               style={{
-                padding: "0.5rem",
-                color: "white",
-                borderRadius: "0.2rem",
-                border: topWinsType == 1 ? "1px solid" : "",
-                cursor: "pointer",
+                display: "flex",
+                justifyContent: "center",
+                gap: "1rem",
+                marginBottom: "1rem",
+          
               }}
-              onClick={() => toggleTopWinsType(1)}
             >
-              BIGGEST WINS
+              <Box
+                style={{
+                  padding: "0.5rem",
+                  color: "white",
+                  borderRadius: "0.2rem",
+                  border: groupByType == 0 ? "1px solid" : "",
+                  cursor: "pointer",
+                  
+                }}
+                onClick={() => toogleGroupBy(0)}
+              >
+                Day
+              </Box>
+              <Box
+                style={{
+                  padding: "0.5rem",
+                  color: "white",
+                  borderRadius: "0.2rem",
+                  border: groupByType == 1 ? "1px solid" : "",
+                  cursor: "pointer",
+                }}
+                onClick={() => toogleGroupBy(1)}
+              >
+                Month
+              </Box>
+              <Box
+                style={{
+                  padding: "0.5rem",
+                  color: "white",
+                  borderRadius: "0.2rem",
+                  border: groupByType == 2 ? "1px solid" : "",
+                  cursor: "pointer",
+                }}
+                onClick={() => toogleGroupBy(2)}
+              >
+                Year
+              </Box>
             </Box>
           </Box>
         )}
-  
-
+        { (activeButton==0) && <Box style={{
+          padding:'0rem 1rem',
+          display:'flex',
+          flexDirection:'column',
+          color:'white'
+        }}>
+          <p>ALL BETS</p>
+          <p>{betCount}</p>
+        </Box>}
         <Table
           style={{
-            maxHeight: "70vh", 
-            width: '100%', 
+            maxHeight: "70vh",
+            width: "100%",
             overflow: "scroll !important",
             color: "#ae9eff",
             border: "none",
-          
+
             "& th": {
               border: "none",
             },
             "& td": {
               border: "none",
             },
-            "&::-webkit-scrollbar": {
+            "&::WebkitScrollbar": {
               width: "6px",
             },
-            "::-webkit-scrollbar-track": {
+            "::WebkitScrollbarTrack": {
               background: "transparent",
             },
-            "::-webkit-scrollbar-thumb": {
+            "::WebkitScrollbarThumb": {
               background: "#685AB0",
               borderRadius: "5px",
             },
-            "&::-webkit-scrollbar-thumb:hover": {
+            "&::WebkitScrollbarThumb:hover": {
               background: "#685AB09f",
             },
             // ...tableStyle,
@@ -148,13 +219,13 @@ const Aside = ({ isLandScape, bets }) => {
           // style={tableStyle}
           // striped
         >
-
-     
-          <thead style={{
-            position: "sticky",
-            zIndex: 1,
-            backgroundColor: "#3b3363", 
-          }}>
+          <thead
+            style={{
+              position: "sticky",
+              zIndex: 1,
+              backgroundColor: "#3b3363",
+            }}
+          >
             <tr>
               {tableHeaders.map((header) => (
                 <th
@@ -170,11 +241,13 @@ const Aside = ({ isLandScape, bets }) => {
               ))}
             </tr>
           </thead>
-           {
-            activeButton===0? <AllBets/>
-            :activeButton===1? <MyBets/>
-            : <TopWins topWinsType={topWinsType} />
-           }
+          {activeButton === 0 ? (
+            <AllBets notifyIncomingBets={notifyIncomingBets} />
+          ) : activeButton === 1 ? (
+            <MyBets />
+          ) : (
+            <TopWins topWinsType={topWinsType} groupByType={groupByType} currentUser={currentUser}/>
+          )}
         </Table>
       </Box>
     </Box>
