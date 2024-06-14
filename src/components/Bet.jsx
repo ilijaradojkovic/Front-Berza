@@ -89,134 +89,134 @@ const Bet = ({
     }
   }, [gameState]);
 
-  // useEffect(() => {
-  //   if (
-  //     isBeting &&
-  //     autoCashOut &&
-  //     !isSold &&
-  //     currentValue >= autoCashOutAmount &&
-  //     !gameOver
-  //   ) {
-  //     setIsSold(true);
-  //     // setBalance(balance + cashOutAmount * betAmount);
+  useEffect(() => {
+    if (
+      isBeting &&
+      autoCashOut &&
+      !isSold &&
+      currentValue >= autoCashOutAmount &&
+      !gameOver
+    ) {
+      setIsSold(true);
+      // setBalance(balance + cashOutAmount * betAmount);
 
-  //     // setWins((prev) => prev + cashOutAmount * betAmount);
+      // setWins((prev) => prev + cashOutAmount * betAmount);
 
-  //     setBets((prev) => [
-  //       {
-  //         time: new Date().getTime(),
-  //         bet: betAmount,
-  //         coeff: autoCashOutAmount,
-  //         cashOut: autoCashOutAmount * betAmount,
-  //         profit: true,
-  //       },
-  //       ...prev,
-  //     ]);
-  //     // const audio = new Audio(success);
-  //     // if (audioPermission) {
-  //     //   audio.play();
-  //     // }
-  //   }
-  // }, [
-  //   isBeting,
-  //   autoCashOut,
-  //   isSold,
-  //   currentValue,
-  //   autoCashOutAmount,
-  //   gameOver,
-  //   audioPermission,
-  // ]);
+      setBets((prev) => [
+        {
+          time: new Date().getTime(),
+          bet: betAmount,
+          coeff: autoCashOutAmount,
+          cashOut: autoCashOutAmount * betAmount,
+          profit: true,
+        },
+        ...prev,
+      ]);
+      // const audio = new Audio(success);
+      // if (audioPermission) {
+      //   audio.play();
+      // }
+    }
+  }, [
+    isBeting,
+    autoCashOut,
+    isSold,
+    currentValue,
+    autoCashOutAmount,
+    gameOver,
+    audioPermission,
+  ]);
 
-  // useEffect(() => {
-  //   if (gameOver) {
-  //     setIsBeting(false);
-  //     setIsSold(false);
+  useEffect(() => {
+    if (gameOver) {
+      setIsBeting(false);
+      setIsSold(false);
 
-  //     if (isBeting && !isSold) {
-  //       setLoses((prev) => prev + betAmount);
-  //       setBets((prev) => [
-  //         {
-  //           time: new Date().getTime(),
-  //           bet: betAmount,
-  //           coeff: 0,
-  //           cashOut: 0,
-  //           profit: false,
-  //         },
-  //         ...prev,
-  //       ]);
-  //     }
-  //   }
-  // }, [gameOver, isSold]);
+      if (isBeting && !isSold) {
+        setLoses((prev) => prev + betAmount);
+        setBets((prev) => [
+          {
+            time: new Date().getTime(),
+            bet: betAmount,
+            coeff: 0,
+            cashOut: 0,
+            profit: false,
+          },
+          ...prev,
+        ]);
+      }
+    }
+  }, [gameOver, isSold]);
 
-  // useEffect(() => {
-  //   if (lottieRef?.current) {
-  //     if (isSold) {
-  //       lottieRef.current.play();
-  //     } else {
-  //       lottieRef.current.stop();
-  //     }
-  //   }
-  // }, [isSold]);
+  useEffect(() => {
+    if (lottieRef?.current) {
+      if (isSold) {
+        lottieRef.current.play();
+      } else {
+        lottieRef.current.stop();
+      }
+    }
+  }, [isSold]);
 
-  //kada multiplier prodje autocashout vrednost disable dugme to je nova logika
-  //  useEffect(()=>{
+  // kada multiplier prodje autocashout vrednost disable dugme to je nova logika
+   useEffect(()=>{
 
-  //     if(!bet) return ;
-  //     const client1 = new RSocketClient({
-  //       setup: {
-  //         // ms btw sending keepalive to server
-  //         keepAlive: 60000,
-  //         // ms timeout if no keepalive response
-  //         lifetime: 180000,
-  //         // format of `data`
-  //         dataMimeType: "application/json",
-  //         // format of `metadata`
-  //         metadataMimeType: "message/x.rsocket.routing.v0",
-  //       },
-  //       serializers: {
-  //         data: JsonSerializer,
-  //         metadata: IdentitySerializer,
-  //       },
-  //       transport: new RSocketWebSocketClient({
-  //         url: "ws://localhost:9000/",
-  //       }),
-  //     }).connect();
+      if(!bet) return ;
+      const client1 = new RSocketClient({
+        setup: {
+          // ms btw sending keepalive to server
+          keepAlive: 60000,
+          // ms timeout if no keepalive response
+          lifetime: 180000,
+          // format of `data`
+          dataMimeType: "application/json",
+          // format of `metadata`
+          metadataMimeType: "message/x.rsocket.routing.v0",
+        },
+        serializers: {
+          data: JsonSerializer,
+          metadata: IdentitySerializer,
+        },
+        transport: new RSocketWebSocketClient({
+          url: "ws://localhost:9001/",
+        }),
+      }).connect();
 
-  //     client1?.subscribe({
-  //       onComplete: (socket) => {
-  //         console.log(bet)
-  //         console.log("Connected to server");
-  //         const metadata = String.fromCharCode(`bet.${bet.id}`.length) + `bet.${bet.id}`;
-  //         socket.requestStream({
-  //           metadata: metadata,
-  //         }).subscribe({
-  //           onNext: (response) => {
-  //             console.log("Received bet response:", response);
-  //             if(response.data){
-  //               const recivedBet=response.data
-  //               setBetState( recivedBet && recivedBet.multiplier!=0? 'FINISHED':'RUNNING')
-  //             }
-  //             // Handle the incoming bet response (e.g., update state)
-  //           },
-  //           onError: (error) => {
-  //             console.log("Error in bet stream:", error);
-  //           },
-  //           onComplete: () => {
-  //             console.log("Bet stream completed");
-  //           },
-  //           onSubscribe: (subscription) => {
-  //             subscription.request(2147483647); // Request a valid integer number of responses
-  //           },
-  //         });
-  //       },
-  //       onError: (error) => {
-  //         console.log("Connection error:", error);
+      client1?.subscribe({
+        onComplete: (socket) => {
+          console.log(bet)
+          console.log("Connected to server");
+          const metadata = String.fromCharCode(`bet.${bet.id}`.length) + `bet.${bet.id}`;
+          socket.requestStream({
+            metadata: metadata,
+          }).subscribe({
+            onNext: (response) => {
+              console.log("Received bet response:", response);
+              if(response.data){
+                const recivedBet=response.data
+                setBetState( recivedBet && recivedBet.multiplier!=0? 'FINISHED':'RUNNING')
+              }
+              // Handle the incoming bet response (e.g., update state)
+            },
+            onError: (error) => {
+              console.log("Error in bet stream:", error);
+            },
+            onComplete: () => {
+              console.log("Bet stream completed");
+            },
+            onSubscribe: (subscription) => {
+              subscription.request(2147483647); // Request a valid integer number of responses
+            },
+          });
+        },
+        onError: (error) => {
+          console.log("Connection error:", error);
 
-  //       },
+        },
 
-  //     })
+      })
 
-  //   },[bet]);
+    },[bet]);
 
   const placeBet = () => {
     const requestDataBet = {
@@ -244,7 +244,7 @@ const Bet = ({
         metadata: IdentitySerializer,
       },
       transport: new RSocketWebSocketClient({
-        url: "ws://localhost:9000/",
+        url: "ws://localhost:9001/",
       }),
     }).connect();
 
@@ -298,7 +298,7 @@ const Bet = ({
         metadata: IdentitySerializer,
       },
       transport: new RSocketWebSocketClient({
-        url: "ws://localhost:9000/",
+        url: "ws://localhost:9001/",
       }),
     }).connect();
 
@@ -350,7 +350,7 @@ const Bet = ({
         metadata: IdentitySerializer,
       },
       transport: new RSocketWebSocketClient({
-        url: "ws://localhost:9000/",
+        url: "ws://localhost:9001/",
       }),
     }).connect();
 

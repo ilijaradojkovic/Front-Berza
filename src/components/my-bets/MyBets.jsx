@@ -1,9 +1,9 @@
 import { useQuery, useQueryClient } from "react-query";
-import { getMyBetsAPI } from "../../rest/api";
-import { timeFormat } from "../util/date-util";
-import { formatToTwoDecimals } from "../util/number-util";
 import { useEffect } from "react";
 import "./MyBets.css";
+import { getMyBetsAPI } from "../../communication/rest";
+import { timeFormat } from "../util/date-util";
+import { formatToTwoDecimals } from "../util/number-util";
 export const MyBets = () => {
   const queryClient = useQueryClient();
   let size = 10;

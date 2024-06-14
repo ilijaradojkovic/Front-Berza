@@ -42,6 +42,7 @@ import {
 } from "./util/game-state";
 import { useSpring, animated } from "react-spring";
 import { greenColor, redColor } from "../colors/colors";
+import { connectToGamePoints } from "../communication/socket";
 
 const CustomDot = ({ x, y, value, isLandScape, gameOver, audioPermission }) => {
   const animContainer = useRef(null);
@@ -235,62 +236,18 @@ const RechartsChart2 = ({
   };
 
   useEffect(() => {
-    const client = new RSocketClient({
-      setup: {
-        // ms btw sending keepalive to server
-        keepAlive: 60000,
-        // ms timeout if no keepalive response
-        lifetime: 180000,
-        // format of `data`
-        dataMimeType: "application/json",
-        // format of `metadata`
-        metadataMimeType: "message/x.rsocket.routing.v0",
-      },
-      transport: new RSocketWebsocketClient({
-        url: "ws://localhost:9001/",
-      }),
-    });
-
-    client.connect().subscribe({
-      onComplete: (socket) => {
-        // socket provides the rsocket interactions fire/forget, request/response,
-        // request/stream, etc as well as methods to close the socket.
-        socket
-          .requestStream({
-            metadata: String.fromCharCode("points".length) + "points",
-          })
-          .subscribe({
-            onComplete: () => {
-              console.log("complete");
-            },
-            onError: (error) => {
-              console.log(error);
-              // addErrorMessage("Connection has been closed due to ", error);
-            },
-            onNext: (payload) => {
-              let socketData = JSON.parse(payload.data);
-              console.log(payload)
-              setCurrentMultiplier(socketData.y);
-              setChartData((prevChart) => {
-                const newChart = [...prevChart, socketData];
-                const newSegments = splitDataIntoSegments(newChart);
-                setSegments(newSegments);
-                return newChart;
-              });
-              // updateState(payload.data);
-            },
-            onSubscribe: (subscription) => {
-              subscription.request(2147483647);
-            },
-          });
-      },
-      onError: (error) => {
-        console.log(error);
-        // addErrorMessage("Connection has been refused due to ", error);
-      },
-    });
+    connectToGamePoints(handlePayload)
   }, []);
 
+  const handlePayload=(payload)=>{
+    setCurrentMultiplier(payload.y);
+    setChartData((prevChart) => {
+      const newChart = [...prevChart, payload];
+      const newSegments = splitDataIntoSegments(newChart);
+      setSegments(newSegments);
+      return newChart;
+    });
+  }
   const bgMoving = keyframes({
     "0%": {
       backgroundPositionX: `0%`,

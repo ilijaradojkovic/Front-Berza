@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "react-query";
-import { getHistoryOfGames } from "../rest/api";
+import { getHistoryOfGames } from "../communication/rest";
 import { Box, Button, ScrollArea } from "@mantine/core";
 import { blackColor, darkGrayColor } from "../colors/colors";
 

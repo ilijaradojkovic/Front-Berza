@@ -1,7 +1,7 @@
 import { BreakfastDiningOutlined } from "@mui/icons-material"
 import axios from "axios"
 
-const BASE_URL='http://localhost:8000/api'
+const BASE_URL='http://localhost:8001/api'
 
 export const getHistoryOfGames=(page,size)=>{
  

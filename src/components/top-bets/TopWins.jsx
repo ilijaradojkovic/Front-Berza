@@ -1,8 +1,8 @@
 import { useQuery } from "react-query";
-import { getBetsTopWins } from "../../rest/api";
 import { timeFormat } from "../util/date-util";
 import { formatToTwoDecimals } from "../util/number-util";
 import { useEffect } from "react";
+import { getBetsTopWins } from "../../communication/rest";
 
 export const TopWins=({topWinsType,groupByType,currentUser})=>{
 

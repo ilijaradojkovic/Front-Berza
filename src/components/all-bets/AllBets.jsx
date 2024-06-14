@@ -1,9 +1,9 @@
 import { useQuery, useQueryClient } from "react-query";
-import { getAllBetsAPI } from "../../rest/api";
 import { useEffect } from "react";
 import { timeFormat } from "../util/date-util";
 import { formatToTwoDecimals } from "../util/number-util";
 import './AllBets.css';
+import { getAllBetsAPI } from "../../communication/rest";
 
 //Napravio sam funkciju notifyIncomingBets jer realno gde mi prikazujemo 'ALL BETS' koliko ih ima je ovde samo uzmemo length polje,pa je ovo kao event koji salje u paren kompoenentu
 //te bets .Da ne koristim 2 poziva iako imam na beku pozvi da mi vrati broj betova,ovo je isto samo length.Da ne bi isli 2 ista poziva na svakih 0.5s lakse je jeadn i da se event salje

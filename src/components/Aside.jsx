@@ -5,7 +5,6 @@ import { MyBets } from "./my-bets/MyBets";
 import { TopWins } from "./top-bets/TopWins";
 import { Box, Button, Table } from "@mantine/core";
 import { useQuery } from "react-query";
-import { fetchUser } from "../rest/api";
 
 const Aside = ({ isLandScape, bets,currentUser }) => {
   const [activeButton, setActiveButton] = useState(0);

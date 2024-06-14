@@ -1,6 +1,6 @@
 import { Box, Button, ScrollArea,Modal } from "@mantine/core";
 import React, { useEffect, useState } from "react";
-import { getHistoryOfGames } from "../rest/api";
+import { getHistoryOfGames } from "../communication/rest.js";
 import { useQuery } from "react-query";
 import {GameHistory} from "./GameHistory.jsx";
 import { useDisclosure } from "@mantine/hooks";

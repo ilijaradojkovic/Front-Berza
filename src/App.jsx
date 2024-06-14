@@ -8,15 +8,14 @@ import Aside from "./components/Aside";
 import { MantineProvider } from "@mantine/core";
 import Navbar from "./components/Navbar";
 import { useViewportSize } from "@mantine/hooks";
-import { useLocalStorage } from "./hooks/useLocalStorage";
 
 import RechartsChart2 from "./components/RechartsChart2";
-import { RSocketClient } from "rsocket-core";
-import RSocketWebsocketClient from "rsocket-websocket-client";
+
 import { useQuery } from "react-query";
-import { getUserData } from "./rest/api";
 import { Notifications } from "@mantine/notifications";
 import { Chat } from "./components/chat/Chat";
+import { getUserData } from "./communication/rest";
+import {connectToGameState} from "./communication/socket";
 
 function App() {
 
@@ -59,54 +58,15 @@ function App() {
 
   //init socket connection
   useEffect(() => {
-    const client = new RSocketClient({
-      setup: {
-        // ms btw sending keepalive to server
-        keepAlive: 60000,
-        // ms timeout if no keepalive response
-        lifetime: 180000,
-        // format of `data`
-        dataMimeType: "application/json",
-        // format of `metadata`
-        metadataMimeType: "message/x.rsocket.routing.v0",
-      },
-      transport: new RSocketWebsocketClient({
-        url: "ws://localhost:9001/",
-      }),
-    });
-
-    client.connect().subscribe({
-      onComplete: (socket) => {
-        socket
-          .requestStream({
-            metadata: String.fromCharCode("game-state".length) + "game-state",
-          })
-          .subscribe({
-            onComplete: () => {
-              console.log("complete");
-            },
-            onError: (error) => {
-              console.log(error);
-            },
-            onNext: (payload) => {
-              let dataFromSocket = JSON.parse(payload.data);
-              setTick(dataFromSocket.tick);
-              setLastValue(dataFromSocket.lastValue);
-              if (dataFromSocket.gameState !== gameState)
-                setGameState(dataFromSocket.gameState);
-            },
-            onSubscribe: (subscription) => {
-              subscription.request(2147483647);
-            },
-          });
-      },
-      onError: (error) => {
-        console.log(error);
-      },
-      onSubscribe: (cancel) => {},
-    });
+      connectToGameState(handlePayload)
   }, []);
 
+  const handlePayload=(payload)=>{
+    setTick(payload.tick);
+    setLastValue(payload.lastValue);
+    if (payload.gameState !== gameState)
+      setGameState(payload.gameState);
+  }
 
   const playSound = () => {
     console.log(backgroundMusic)
