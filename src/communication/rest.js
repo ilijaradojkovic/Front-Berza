@@ -10,7 +10,7 @@ export const getHistoryOfGames=(page,size)=>{
 }
 
 export const getAllBetsAPI=(page,size)=>{
-    return axios.get(`${BASE_URL}/bets/current`,{
+    return axios.get(`${BASE_URL}/bets/live`,{
         params: {
             size: size,
             page: page
