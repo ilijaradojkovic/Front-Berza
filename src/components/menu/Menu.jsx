@@ -13,6 +13,7 @@ import { MenuSeparator } from "./menu-separator";
 import { useDisclosure } from "@mantine/hooks";
 import { ChangeAvatar } from "./changeAvatar";
 import {GameHistory} from "./../GameHistory.jsx";
+import { images } from "../util/globals.js";
 
 export const MenuComponent = ({
   isMenuOpened,
@@ -24,14 +25,7 @@ export const MenuComponent = ({
   toggleAnimationSetting,
   currentUser,
 }) => {
-  const images = [
-    "/src/assets/images/avatar1.jpg",
-    "/src/assets/images/avatar2.jpg",
-    "/src/assets/images/avatar3.jpg",
-    "/src/assets/images/avatar4.jpg",
-    "/src/assets/images/avatar5.jpg",
-    "/src/assets/images/avatar6.jpg",
-  ];
+
   const [openedMenu, { open: openMenu, close: closeMenu }] =
     useDisclosure(false);
   const [openedDialog, { open: openDialog, close: closeDialog }] = useDisclosure(false);

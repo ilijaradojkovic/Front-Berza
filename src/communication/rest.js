@@ -56,3 +56,12 @@ export const getUserData=()=>{
 export const fetchUser=()=>{
     return axios.get(`${BASE_URL}/bets/count/currentGame`)
 }
+
+//prebacili na socket
+// export const getMessages=()=>{
+//     return axios.get(`${BASE_URL}/api/chat`)
+// }
+
+export const sendMessage=(message)=>{
+    return axios.post(`${BASE_URL}/chat/send`,message)
+}

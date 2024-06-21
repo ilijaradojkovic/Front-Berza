@@ -8,7 +8,8 @@ import { useQuery } from "react-query";
 
 const Aside = ({ isLandScape, bets,currentUser }) => {
   const [activeButton, setActiveButton] = useState(0);
-  const [topWinsType, setTopWinsType] = useState(0);
+  //1 je Biggest wins
+  const [topWinsType, setTopWinsType] = useState(1);
   const [groupByType, setGroupByType] = useState(0);
   const [betCount,setBetCount]=useState(0)
   const buttons = [
@@ -103,7 +104,7 @@ const Aside = ({ isLandScape, bets,currentUser }) => {
                 marginBottom: "1rem",
               }}
             >
-              <Box
+              {/* <Box
                 style={{
                   padding: "0.5rem",
                   color: "white",
@@ -114,7 +115,7 @@ const Aside = ({ isLandScape, bets,currentUser }) => {
                 onClick={() => toggleTopWinsType(0)}
               >
                 MULTIPLIERS
-              </Box>
+              </Box> */}
               <Box
                 style={{
                   padding: "0.5rem",

@@ -1,7 +1,7 @@
 import { RSocketClient } from "rsocket-core";
 import RSocketWebSocketClient from "rsocket-websocket-client";
 
-const BASE_URL='ws://localhost:9000/'
+const BASE_URL='ws://localhost:9001/'
 
 function clientSetup(){
     return  new RSocketClient({
@@ -16,7 +16,7 @@ function clientSetup(){
           metadataMimeType: "message/x.rsocket.routing.v0",
         },
         transport: new RSocketWebSocketClient({
-          url: "ws://localhost:9001/",
+          url: BASE_URL,
         }),
       });
 }
@@ -89,3 +89,40 @@ export function connectToGamePoints(handlePayload){
       });
 }
  
+
+
+export function connectToChat(handlePayload){
+  const client =clientSetup();
+    client.connect().subscribe({
+      onComplete: (socket) => {
+        // socket provides the rsocket interactions fire/forget, request/response,
+        // request/stream, etc as well as methods to close the socket.
+        socket
+          .requestStream({
+            metadata: String.fromCharCode("chat".length) + "chat",
+          })
+          .subscribe({
+            onComplete: () => {
+              console.log("complete");
+            },
+            onError: (error) => {
+              console.log(error);
+              // addErrorMessage("Connection has been closed due to ", error);
+            },
+            onNext: (payload) => {
+              let socketData = JSON.parse(payload.data);
+               handlePayload(socketData);    
+               
+              // updateState(payload.data);
+            },
+            onSubscribe: (subscription) => {
+              subscription.request(2147483647);
+            },
+          });
+      },
+      onError: (error) => {
+        console.log(error);
+        // addErrorMessage("Connection has been refused due to ", error);
+      },
+    });
+}

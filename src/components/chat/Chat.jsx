@@ -1,14 +1,30 @@
 import { Box, Button, Dialog, CloseButton } from "@mantine/core";
 import "./Chat.css";
-import { blackColor, darkGrayColor, grayColor, lightGrayColor, purpleLight } from "../../colors/colors";
+import {
+  blackColor,
+  darkGrayColor,
+  grayColor,
+  lightGrayColor,
+  purpleLight,
+} from "../../colors/colors";
 import Message from "./message/Message";
 import WaterDropIcon from "@mui/icons-material/WaterDrop";
 import { useDisclosure } from "@mantine/hooks";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useQuery } from "react-query";
+import { connectToChat } from "../../communication/socket";
+import { sendMessage } from "../../communication/rest";
 
-export const Chat = () => {
+export const Chat = ({currentUser}) => {
+  // const {data: messages, refetch } = useQuery(["messages"], () =>
+  //   getMessages(page, size)
+  // );
+  const [messages, setMessages] = useState([]);
+  const [messageValue, setMessageValue] = useState('');
+  const messagesEndRef = useRef(null);
+
   const [opened, { toggle, close }] = useDisclosure(false);
   const [amountPerPlayerRain, setAmountPerPlayerRain] = useState(10.0);
   const [numberOfPlayersRain, setNumberOfPlayersRain] = useState(10);
@@ -42,13 +58,51 @@ export const Chat = () => {
     setAmountPerPlayerRain((prev) => (parseFloat(prev) + 1).toFixed(2));
   };
 
-  return (
+  const handleSendMessage = () => {
+    if(messageValue.length===0) return
+    sendMessage({
+      username: currentUser.username,
+      message: messageValue,
+      imageIndex: currentUser?.preferences.imageIndex,
+      chatMessageType: "DEFAULT",
+    });
+    setMessageValue('');
+  };
+
+  useEffect(() => {
+    connectToChat(handlePayload);
+  }, []);
+
+  const handlePayload = (payload) => {
+
+    setMessages((oldMessages) => {
+      const newMessages = [...oldMessages, payload];
+      return newMessages;
+    });
+  };
+
+  const handleInputChange = (event) => {
+    setMessageValue(event.target.value);
+  };
+
+ 
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+return (
     <Box
       style={{
         display: "flex",
         height: "100%",
         flexDirection: "column",
         backgroundColor: purpleLight,
+   
       }}
     >
       <Box
@@ -56,13 +110,20 @@ export const Chat = () => {
           flex: 1,
           display: "flex",
           flexDirection: "column",
+          overflowY: "auto", // Enable vertical scrolling
+          scrollbarWidth: "none", // Firefox scrollbar hide
+          msOverflowStyle: "none", // IE/Edge scrollbar hide
+          "&::-webkit-scrollbar": {
+            display: "none", // Webkit scrollbar hide
+          },
         }}
       >
-        <Message />
-        <Message />
-        <Message type="rain" />
+        {messages?.map((msg, index) => (
+          <Message key={index} message={msg} />
+        ))}
+        <div ref={messagesEndRef} /> {/* Empty div to control scroll position */}
       </Box>
-      {opened && (
+            {opened && (
         <Box
           style={{
             padding: "0px 10px",
@@ -79,7 +140,6 @@ export const Chat = () => {
               color: "white",
               borderRadius: "5px 5px 0px 0px",
               backgroundColor: lightGrayColor,
-              
             }}
           >
             <p>RAIN</p>
@@ -102,7 +162,7 @@ export const Chat = () => {
               flexDirection: "column",
               gap: "5px",
               flex: "1",
-              color:'white'
+              color: "white",
             }}
           >
             <p style={{ fontSize: "0.8rem", opacity: "0.7" }}>
@@ -115,11 +175,16 @@ export const Chat = () => {
                 justifyContent: "center",
                 color: "white",
                 flexDirection: "column",
-                marginTop:'15px'
+                marginTop: "15px",
               }}
             >
               <label
-                style={{ color: "black", width: "100%", fontSize: "0.8rem" ,color:'white'}}
+                style={{
+                  color: "black",
+                  width: "100%",
+                  fontSize: "0.8rem",
+                  color: "white",
+                }}
               >
                 Amount per player, RSD
               </label>
@@ -166,7 +231,12 @@ export const Chat = () => {
               }}
             >
               <label
-                style={{ color: "black", width: "100%", fontSize: "0.8rem",color:'white' }}
+                style={{
+                  color: "black",
+                  width: "100%",
+                  fontSize: "0.8rem",
+                  color: "white",
+                }}
               >
                 Number of players
               </label>
@@ -220,7 +290,7 @@ export const Chat = () => {
                 alignItems: "center",
               }}
             >
-              <Button style={{backgroundColor:purpleLight}}>
+              <Button style={{ backgroundColor: purpleLight }}>
                 RAIN {(amountPerPlayerRain * numberOfPlayersRain).toFixed(2)}{" "}
                 RSD
               </Button>
@@ -229,15 +299,22 @@ export const Chat = () => {
         </Box>
       )}
       <Box style={{ display: "flex", borderTop: "solid 1px black" }}>
-        <input className="reply-input" placeholder="Reply" />
+        <input
+          className="reply-input"
+          placeholder="Reply"
+          value={messageValue}
+          onChange={handleInputChange}
+        />
         <button
           style={{
             border: "none",
             padding: "10px",
             backgroundColor: "transparent",
             color: "white",
-            cursor:'pointer'
+            cursor: "pointer",
           }}
+          onClick={handleSendMessage}
+          
         >
           SEND
         </button>
@@ -250,7 +327,7 @@ export const Chat = () => {
           padding: "10px",
         }}
       >
-        <WaterDropIcon
+         <WaterDropIcon
           onClick={toggle}
           style={{ color: "white", cursor: "pointer" }}
         />

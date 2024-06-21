@@ -15,10 +15,9 @@ import { useQuery } from "react-query";
 import { Notifications } from "@mantine/notifications";
 import { Chat } from "./components/chat/Chat";
 import { getUserData } from "./communication/rest";
-import {connectToGameState} from "./communication/socket";
+import { connectToGameState } from "./communication/socket";
 
 function App() {
-
   const backgroundMusic = useRef(null);
 
   const [isSoundOn, setIsSoundOn] = useState(false);
@@ -31,13 +30,12 @@ function App() {
   //Ovde je bilo useLocalStorage("bets",[])
   const [bets, setBets] = useState([]);
 
-  const [currentUser,setCurrentUser]=useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const [audioPermission, setAudioPermission] = useState(false);
   const [gameState, setGameState] = useState("");
   const [tick, setTick] = useState(0);
 
-  
   const { data, isLoading } = useQuery({
     queryKey: ["user"],
     queryFn: () => getUserData(),
@@ -52,24 +50,21 @@ function App() {
   }, [width, height]);
 
   useEffect(() => {
-    console.log(data);
-    setCurrentUser(data?.data)
+    setCurrentUser(data?.data);
   }, [data]);
 
   //init socket connection
   useEffect(() => {
-      connectToGameState(handlePayload)
+    connectToGameState(handlePayload);
   }, []);
 
-  const handlePayload=(payload)=>{
+  const handlePayload = (payload) => {
     setTick(payload.tick);
     setLastValue(payload.lastValue);
-    if (payload.gameState !== gameState)
-      setGameState(payload.gameState);
-  }
+    if (payload.gameState !== gameState) setGameState(payload.gameState);
+  };
 
   const playSound = () => {
-    console.log(backgroundMusic)
     backgroundMusic.current.play();
   };
 
@@ -77,20 +72,16 @@ function App() {
     backgroundMusic.current.pause();
   };
 
-  useEffect(()=>{
+  useEffect(() => {
+    if (isMusicOn) playSound();
+    else pauseSound();
+  }, [isMusicOn]);
 
-      if(isMusicOn)
-        playSound()
-      else pauseSound()
-  },[isMusicOn])
-
-  useEffect(()=>{
-
-      setIsAnimationOn(currentUser?.preferences.isAnimationOn)
-      setIsMusicOn(currentUser?.preferences.isMusicOn)
-      setIsSoundOn(currentUser?.preferences.isSoundOn)
-
-  },[currentUser])
+  useEffect(() => {
+    setIsAnimationOn(currentUser?.preferences.isAnimationOn);
+    setIsMusicOn(currentUser?.preferences.isMusicOn);
+    setIsSoundOn(currentUser?.preferences.isSoundOn);
+  }, [currentUser]);
 
   return (
     <MantineProvider
@@ -122,65 +113,81 @@ function App() {
       }}
     >
       <Notifications />
-      <audio ref={backgroundMusic} src="/src/assets/sounds/backgoundMusic.mp3" loop />
+      <audio
+        ref={backgroundMusic}
+        src="/src/assets/sounds/backgoundMusic.mp3"
+        loop
+      />
+      <Box style={{display:'flex',flexDirection:'column',height:'100vh'}}>
+        <Box
+          style={{
+            padding: "1rem",
 
-      <Box
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          padding: isLandScape ? "2rem" : "1rem",
-          height: isLandScape ? window.innerHeight : "auto",
-          width: window.innerWidth,
-          overflow: "hidden",
-        }}
-      >
-        <Navbar
-          isLandScape={isLandScape}
-          currentUser={currentUser}
-          setAudioPermission={setAudioPermission}
-          audioPermission={audioPermission}
-          isSoundOn={isSoundOn}
-          isMusicOn={isMusicOn}
-          isAnimationOn={isAnimationOn}
-          toggleSoundSetting={()=>setIsSoundOn(!isSoundOn)}
-          toggleMusicSetting={()=>setIsMusicOn(!isMusicOn)}
-          toggleAnimationSetting={()=>setIsAnimationOn(!isAnimationOn)}
-        />
+          }}
+        >
+          <Navbar
+            isLandScape={isLandScape}
+            currentUser={currentUser}
+            setAudioPermission={setAudioPermission}
+            audioPermission={audioPermission}
+            isSoundOn={isSoundOn}
+            isMusicOn={isMusicOn}
+            isAnimationOn={isAnimationOn}
+            toggleSoundSetting={() => setIsSoundOn(!isSoundOn)}
+            toggleMusicSetting={() => setIsMusicOn(!isMusicOn)}
+            toggleAnimationSetting={() => setIsAnimationOn(!isAnimationOn)}
+          />
+        </Box>
         <Box
           style={{
             display: "flex",
-            flexDirection: isLandScape ? "row" : "column-reverse",
-            justifyContent: "space-between",
-            height:'100%'
+            flexDirection: "column",
+            height: isLandScape ? window.innerHeight : "auto",
+            padding:'1rem',
+            width: window.innerWidth,
+            overflow: "hidden",
+            flex:1
           }}
         >
-          <Box style={{width:'20%'}}>
-            <Aside isLandScape={isLandScape} bets={bets} currentUser={currentUser} />
-          </Box>
           <Box
             style={{
               display: "flex",
-              flexDirection: "column",
-              paddingLeft: "20px",
-              paddingRight: "20px",
-              width:'65%',
+              flexDirection: isLandScape ? "row" : "column-reverse",
+              justifyContent: "space-between",
+              height: "100%",
             }}
           >
-           
-            <RechartsChart2
-              isLandScape={isLandScape}
-              bets={bets}
-              setBets={setBets}
-              audioPermission={audioPermission}
-              gameState={gameState}
-              tick={tick}
-              lastValue={lastValue}
-              currentUser={currentUser}
-              isAnimationOn={isAnimationOn}
-            />
-          </Box>
-          <Box style={{width:'15%',backgroundColor:'red'}}>
-            <Chat/>
+            <Box style={{ width: "20%" }}>
+              <Aside
+                isLandScape={isLandScape}
+                bets={bets}
+                currentUser={currentUser}
+              />
+            </Box>
+            <Box
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                paddingLeft: "20px",
+                paddingRight: "20px",
+                width: "65%",
+              }}
+            >
+              <RechartsChart2
+                isLandScape={isLandScape}
+                bets={bets}
+                setBets={setBets}
+                audioPermission={audioPermission}
+                gameState={gameState}
+                tick={tick}
+                lastValue={lastValue}
+                currentUser={currentUser}
+                isAnimationOn={isAnimationOn}
+              />
+            </Box>
+            <Box style={{ width: "15%", maxHeight: "100%" }}>
+              <Chat currentUser={currentUser} />
+            </Box>
           </Box>
         </Box>
       </Box>
