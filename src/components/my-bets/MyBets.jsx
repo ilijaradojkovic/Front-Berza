@@ -18,7 +18,7 @@ export const MyBets = () => {
   }, []);
 
   return (
-    <tbody style={{ width: "100%" ,overflowY: 'auto' }}>
+    <tbody style={{ width: "100%"}}>
       {data?.data?.map((x) => (
         <tr key={x.id} className={getRowClassName(x.multiplier)}>
           <td align="center">{timeFormat(x.time)}</td>

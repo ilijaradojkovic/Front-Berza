@@ -17,8 +17,12 @@ export const TopWins=({topWinsType,groupByType,currentUser})=>{
     },[topWinsType,groupByType])
  
     return (
-        <tbody  style={{width:'100%',overflowY: 'auto' ,height:'10vh'}}>
-      {data?.data?.map((x) => (
+   
+      <tbody
+      style={{
+   
+      }}
+    >      {data?.data?.map((x) => (
         <tr key={x.id} >
           <td align="center">{timeFormat(x.time)}</td>
           <td align="center">{x.amount}</td>
@@ -28,5 +32,6 @@ export const TopWins=({topWinsType,groupByType,currentUser})=>{
         </tr>
       ))}
     </tbody>
+   
     );
 }

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import "./App.css";
 
 import { Box } from "@mantine/core";
-import Aside from "./components/Aside";
+import Aside from "./components/BetSummary/Aside";
 
 import { MantineProvider } from "@mantine/core";
 import Navbar from "./components/Navbar";
