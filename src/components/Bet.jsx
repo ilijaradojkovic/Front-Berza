@@ -208,7 +208,6 @@ const Bet = ({
     setBet(null);
 
    }
-
    const handleCancelBetPayload=(payload)=>{
     setBet(null);
 
@@ -216,11 +215,11 @@ const Bet = ({
 
   const placeBet = () => {
     //trebalo bi da posaljem jwt i onda u taj jwt da se decode na beku i tu da se nalazi userToken i onda sa tim umesto sa mailom da se radi
-    const userToken=localStorage.getItem('')
+    const userToken=localStorage.getItem('accessToken')
     const requestData = {
       amount: betAmount,
       multiplier: currentMultiplier,
-      email: "test@gmail.com",
+      jwt: userToken,
       betType: "BET",
       isAutoCashout: autoCashOut,
       autoCashOutMultiplier: autoCashOutAmount,
@@ -233,11 +232,12 @@ const Bet = ({
    )
   }
   const placeSell = () => {
-    console.log(bet.id)
+    const userToken=localStorage.getItem('accessToken')
+
     const requestData = {
       amount: betAmount,
       multiplier: currentMultiplier,
-      email: "test@gmail.com",
+      jwt: userToken,
       betType: "CASHOUT",
       betId: bet.id,
     };
@@ -450,7 +450,7 @@ const Bet = ({
                     setBetOptionMoney(option);
                   }}
                 >
-                  {option} {currentUser?.casino.currency.name}
+                  {option} {currentUser?.casinoCurrency}
                 </button>
               );
             })}

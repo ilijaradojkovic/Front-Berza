@@ -27,7 +27,6 @@ export const getMyBetsAPI=(page,size)=>{
 }
 
 export const getMozzartToken=(submitToken)=>{
-    console.log(submitToken)
     return axios.post(`${BASE_URL}/users/user/auth`,submitToken)
 }
 
@@ -55,8 +54,13 @@ export const getBetsTopWins=(page,size,topWinsType,groupByType,email)=>{
     })
 }
 
-export const getUserData=()=>{
-    return axios.get(`${BASE_URL}/users/user`)
+export const getUserData = () => {
+    const authToken = localStorage.getItem('accessToken');
+    return axios.get(`${BASE_URL}/users/user`, {
+        headers: {
+            'Authorization': `Bearer ${authToken}`
+        }
+    });
 }
 
 export const fetchUser=()=>{

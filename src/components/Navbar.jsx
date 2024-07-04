@@ -79,7 +79,7 @@ const Navbar = ({
       >
         <b>BALANCE:</b>{" "}
         {currentUser?.balance && thousandSeparator(currentUser?.balance)}{" "}
-        {currentUser?.casino.currency.name}{" "}
+        {currentUser?.casinoCurrency}{" "}
         <button
           style={{
             width: isLandScape ? "20px" : "16px",
