@@ -11,13 +11,40 @@ import { useViewportSize } from "@mantine/hooks";
 
 import RechartsChart2 from "./components/RechartsChart2";
 
-import { useQuery } from "react-query";
+import { useMutation, useQuery } from "react-query";
 import { Notifications } from "@mantine/notifications";
 import { Chat } from "./components/chat/Chat";
-import { getUserData } from "./communication/rest";
+import { getMozzartToken, getUserData } from "./communication/rest";
 import { connectToGameState } from "./communication/socket";
 
 function App() {
+  const addAccountMutation = useMutation((userToken) => getMozzartToken(userToken), {
+    onSuccess: (response) => {
+      if(response.data){
+        const jwt=response.data.accessToken
+        localStorage.setItem('accessToken',jwt)
+      }
+    },
+  });
+
+  useEffect(() => {
+    const messageHandler = (event) => {
+      console.log(event.origin)
+      if (event.origin !== 'http://localhost:5173') { // Replace with the origin of the parent window
+        return;
+      }
+ 
+      addAccountMutation.mutate(event.data.userId);
+
+    };
+
+    window.addEventListener('message', messageHandler);
+
+    // Cleanup event listener
+    return () => {
+      window.removeEventListener('message', messageHandler);
+    };
+  }, []);
   const backgroundMusic = useRef(null);
 
   const [isSoundOn, setIsSoundOn] = useState(false);

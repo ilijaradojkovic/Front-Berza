@@ -14,6 +14,7 @@ import {
 } from "./util/game-state";
 import { showErrorNotification } from "./util/notificationSystem";
 import { grayColor, greenColor, redColor } from "../colors/colors";
+import { connectToCancelBet, connectToCashInBet, connectToCashOutBet } from "../communication/socket";
 const Bet = ({
   setStart,
   isLandScape,
@@ -49,28 +50,6 @@ const Bet = ({
   const [bet, setBet] = useState();
   const [isAutoCashOutDone, setIsAutoCashOutDone] = useState(false);
 
-  useEffect(() => {
-    //   setClient( new RSocketClient({
-    //     setup: {
-    //       // ms btw sending keepalive to server
-    //       keepAlive: 60000,
-    //       // ms timeout if no keepalive response
-    //       lifetime: 180000,
-    //       // format of `data`
-    //       dataMimeType: 'application/json',
-    //       // format of `metadata`
-    //       metadataMimeType: 'message/x.rsocket.routing.v0',
-    //     },
-    //     serializers:{
-    //       data: JsonSerializer,
-    //       metadata:IdentitySerializer
-    //     },
-    //     transport: new RSocketWebSocketClient({
-    //       url: 'ws://localhost:9000/'
-    //     }),
-    //   }).connect()
-    // )
-  }, []);
 
   useEffect(() => {
     if (
@@ -158,68 +137,87 @@ const Bet = ({
     }
   }, [isSold]);
 
-  // kada multiplier prodje autocashout vrednost disable dugme to je nova logika
-   useEffect(()=>{
+  // // kada multiplier prodje autocashout vrednost disable dugme to je nova logika
+  //  useEffect(()=>{
 
-      if(!bet) return ;
-      const client1 = new RSocketClient({
-        setup: {
-          // ms btw sending keepalive to server
-          keepAlive: 60000,
-          // ms timeout if no keepalive response
-          lifetime: 180000,
-          // format of `data`
-          dataMimeType: "application/json",
-          // format of `metadata`
-          metadataMimeType: "message/x.rsocket.routing.v0",
-        },
-        serializers: {
-          data: JsonSerializer,
-          metadata: IdentitySerializer,
-        },
-        transport: new RSocketWebSocketClient({
-          url: "ws://localhost:9001/",
-        }),
-      }).connect();
+  //     if(!bet) return ;
+  //     const client1 = new RSocketClient({
+  //       setup: {
+  //         // ms btw sending keepalive to server
+  //         keepAlive: 60000,
+  //         // ms timeout if no keepalive response
+  //         lifetime: 180000,
+  //         // format of `data`
+  //         dataMimeType: "application/json",
+  //         // format of `metadata`
+  //         metadataMimeType: "message/x.rsocket.routing.v0",
+  //       },
+  //       serializers: {
+  //         data: JsonSerializer,
+  //         metadata: IdentitySerializer,
+  //       },
+  //       transport: new RSocketWebSocketClient({
+  //         url: "ws://localhost:9001/",
+  //       }),
+  //     }).connect();
 
-      client1?.subscribe({
-        onComplete: (socket) => {
-          console.log(bet)
-          console.log("Connected to server");
-          const metadata = String.fromCharCode(`bet.${bet.id}`.length) + `bet.${bet.id}`;
-          socket.requestStream({
-            metadata: metadata,
-          }).subscribe({
-            onNext: (response) => {
-              console.log("Received bet response:", response);
-              if(response.data){
-                const recivedBet=response.data
-                setBetState( recivedBet && recivedBet.multiplier!=0? 'FINISHED':'RUNNING')
-              }
-              // Handle the incoming bet response (e.g., update state)
-            },
-            onError: (error) => {
-              console.log("Error in bet stream:", error);
-            },
-            onComplete: () => {
-              console.log("Bet stream completed");
-            },
-            onSubscribe: (subscription) => {
-              subscription.request(2147483647); // Request a valid integer number of responses
-            },
-          });
-        },
-        onError: (error) => {
-          console.log("Connection error:", error);
+  //     client1?.subscribe({
+  //       onComplete: (socket) => {
+  //         console.log(bet)
+  //         console.log("Connected to server");
+  //         const metadata = String.fromCharCode(`bet.${bet.id}`.length) + `bet.${bet.id}`;
+  //         socket.requestStream({
+  //           metadata: metadata,
+  //         }).subscribe({
+  //           onNext: (response) => {
+  //             console.log("Received bet response:", response);
+  //             if(response.data){
+  //               const recivedBet=response.data
+  //               setBetState( recivedBet && recivedBet.multiplier!=0? 'FINISHED':'RUNNING')
+  //             }
+  //             // Handle the incoming bet response (e.g., update state)
+  //           },
+  //           onError: (error) => {
+  //             console.log("Error in bet stream:", error);
+  //           },
+  //           onComplete: () => {
+  //             console.log("Bet stream completed");
+  //           },
+  //           onSubscribe: (subscription) => {
+  //             subscription.request(2147483647); // Request a valid integer number of responses
+  //           },
+  //         });
+  //       },
+  //       onError: (error) => {
+  //         console.log("Connection error:", error);
 
-        },
+  //       },
 
-      })
+  //     })
 
-    },[bet]);
+  //   },[bet]);
+
+
+    
+  const handleCashInBetPayload=(payload)=>{
+    //We get string data as response and i need to parse it to json 
+    setBet(JSON.parse(payload.data));
+
+   }
+   const handleCashOutBetPayload=(payload)=>{
+    setBet(null);
+
+   }
+
+   const handleCancelBetPayload=(payload)=>{
+    setBet(null);
+
+   }
 
   const placeBet = () => {
-    const requestDataBet = {
+    //trebalo bi da posaljem jwt i onda u taj jwt da se decode na beku i tu da se nalazi userToken i onda sa tim umesto sa mailom da se radi
+    const userToken=localStorage.getItem('')
+    const requestData = {
       amount: betAmount,
       multiplier: currentMultiplier,
       email: "test@gmail.com",
@@ -228,103 +226,26 @@ const Bet = ({
       autoCashOutMultiplier: autoCashOutAmount,
     };
 
-    const client1 = new RSocketClient({
-      setup: {
-        // ms btw sending keepalive to server
-        keepAlive: 60000,
-        // ms timeout if no keepalive response
-        lifetime: 180000,
-        // format of `data`
-        dataMimeType: "application/json",
-        // format of `metadata`
-        metadataMimeType: "message/x.rsocket.routing.v0",
-      },
-      serializers: {
-        data: JsonSerializer,
-        metadata: IdentitySerializer,
-      },
-      transport: new RSocketWebSocketClient({
-        url: "ws://localhost:9001/",
-      }),
-    }).connect();
-
-    client1?.subscribe({
-      onComplete: (socket) => {
-        socket
-          .requestResponse({
-            data: requestDataBet,
-            metadata: String.fromCharCode("bet".length) + "bet",
-          })
-          .subscribe({
-            onComplete: (response) => {
-              console.log(response.data);
-              setBet(response.data);
-            },
-
-            onError: (error) => {
-              console.log("Error placing bet:", error);
-              showErrorNotification("title", "text");
-            },
-          });
-      },
-      onError: (error) => {
-        console.log("Connection error:", error);
-        // Handle connection errors
-      },
-    });
-  };
-
+   //call bet
+   connectToCashInBet(
+    handleCashInBetPayload,
+    requestData
+   )
+  }
   const placeSell = () => {
-    const requestDataCancel = {
+    console.log(bet.id)
+    const requestData = {
       amount: betAmount,
       multiplier: currentMultiplier,
       email: "test@gmail.com",
       betType: "CASHOUT",
       betId: bet.id,
     };
-    const client1 = new RSocketClient({
-      setup: {
-        // ms btw sending keepalive to server
-        keepAlive: 60000,
-        // ms timeout if no keepalive response
-        lifetime: 180000,
-        // format of `data`
-        dataMimeType: "application/json",
-        // format of `metadata`
-        metadataMimeType: "message/x.rsocket.routing.v0",
-      },
-      serializers: {
-        data: JsonSerializer,
-        metadata: IdentitySerializer,
-      },
-      transport: new RSocketWebSocketClient({
-        url: "ws://localhost:9001/",
-      }),
-    }).connect();
+    
+    connectToCashOutBet(handleCashOutBetPayload,requestData)
 
-    client1?.subscribe({
-      onComplete: (socket) => {
-        socket
-          .requestResponse({
-            data: requestDataCancel,
-            metadata: String.fromCharCode("bet".length) + "bet",
-          })
-          .subscribe({
-            onComplete: (r) => {
-              setBet(null);
-            },
-            onError: (error) => {
-              console.log("Error placing bet:", error);
-              // Handle error states
-            },
-          });
-      },
-      onError: (error) => {
-        console.log("Connection error:", error);
-        // Handle connection errors
-      },
-    });
-  };
+
+  }
 
   const placeCancel = () => {
     const requestDataCancel = {
@@ -332,50 +253,13 @@ const Bet = ({
       betId: bet.id,
     };
 
-    console.log(requestDataCancel);
+    connectToCancelBet(
+      handleCancelBetPayload,
+      requestDataCancel
+    )
 
-    const client1 = new RSocketClient({
-      setup: {
-        // ms btw sending keepalive to server
-        keepAlive: 60000,
-        // ms timeout if no keepalive response
-        lifetime: 180000,
-        // format of `data`
-        dataMimeType: "application/json",
-        // format of `metadata`
-        metadataMimeType: "message/x.rsocket.routing.v0",
-      },
-      serializers: {
-        data: JsonSerializer,
-        metadata: IdentitySerializer,
-      },
-      transport: new RSocketWebSocketClient({
-        url: "ws://localhost:9001/",
-      }),
-    }).connect();
 
-    client1?.subscribe({
-      onComplete: (socket) => {
-        socket
-          .requestResponse({
-            data: requestDataCancel,
-            metadata: String.fromCharCode("bet".length) + "bet",
-          })
-          .subscribe({
-            onComplete: (r) => {
-              setBet(null);
-            },
-            onError: (error) => {
-              console.log("Error placing bet:", error);
-            },
-          });
-      },
-      onError: (error) => {
-        console.log("Connection error:", error);
-        // Handle connection errors
-      },
-    });
-  };
+  }
 
   const handleBet = () => {
     if (isWaitingState(gameState) && !bet) placeBet();

@@ -113,7 +113,7 @@ return (
           overflowY: "auto", // Enable vertical scrolling
           scrollbarWidth: "none", // Firefox scrollbar hide
           msOverflowStyle: "none", // IE/Edge scrollbar hide
-          "&::-webkit-scrollbar": {
+          "&::WebkitScrollbar": {
             display: "none", // Webkit scrollbar hide
           },
         }}

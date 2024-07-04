@@ -10,12 +10,12 @@ export const getHistoryOfGames=(page,size)=>{
 }
 
 export const getAllBetsAPI=(page,size)=>{
-    return axios.get(`${BASE_URL}/bets/live`,{
-        params: {
-            size: size,
-            page: page
-          }
-    })
+    // return axios.get(`${BASE_URL}/bets/live`,{
+    //     params: {
+    //         size: size,
+    //         page: page
+    //       }
+    // })
 }
 export const getMyBetsAPI=(page,size)=>{
     return  axios.get(`${BASE_URL}/bets/my-bets`,{
@@ -25,6 +25,12 @@ export const getMyBetsAPI=(page,size)=>{
           }
     })
 }
+
+export const getMozzartToken=(submitToken)=>{
+    console.log(submitToken)
+    return axios.post(`${BASE_URL}/users/user/auth`,submitToken)
+}
+
 
 export const getBetsTopWins=(page,size,topWinsType,groupByType,email)=>{
     const betHighestType=topWinsType==0?'BY_MULTIPLIER':'BY_AMOUNT'

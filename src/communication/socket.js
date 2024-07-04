@@ -89,6 +89,91 @@ export function connectToGamePoints(handlePayload){
       });
 }
  
+export function connectToCashInBet(handlePayload, data) {
+  const client = clientSetup();
+
+  client.connect().subscribe({
+    onComplete: (socket) => {
+      socket
+        .requestResponse({
+          data: JSON.stringify(data),
+          metadata: String.fromCharCode("bet".length) + "bet",
+        })
+        .subscribe({
+          onComplete: (response) => {
+            handlePayload(response);
+          },
+          onError: (error) => {
+            console.error("Error placing bet:", error);
+            showErrorNotification("Error placing bet", error.message || "An error occurred while placing your bet.");
+          },
+        });
+    },
+    onError: (error) => {
+      console.error("Connection error:", error);
+      showErrorNotification("Connection Error", error.message || "An error occurred while connecting.");
+    },
+  });
+}
+
+export function connectToCashOutBet(handlePayload,data){
+  console.log(data)
+  const client =clientSetup();
+  client.connect().subscribe({
+    onComplete: (socket) => {
+      socket
+        .requestResponse({
+          data: JSON.stringify(data),
+          metadata: String.fromCharCode("bet".length) + "bet",
+        })
+        .subscribe({
+          onComplete: (r) => {
+            handlePayload(null);
+          },
+          onError: (error) => {
+            console.log("Error placing bet:", error);
+            // Handle error states
+          },
+        });
+    },
+    onError: (error) => {
+      console.log("Connection error:", error);
+      // Handle connection errors
+    },
+  });
+
+};
+
+export function connectToCancelBet(handlePayload, data) {
+  const client = clientSetup();
+  client.connect().subscribe({
+    onComplete: (socket) => {
+
+      socket
+        .requestResponse({
+          data: JSON.stringify(data), // Ensure data is correctly serialized
+          metadata: String.fromCharCode("bet".length) + "bet",
+        })
+        .subscribe({
+          onComplete: (response) => {
+            handlePayload(response); // Pass the response to the handlePayload function
+          },
+          onError: (error) => {
+            console.error("Error placing bet:", error);
+            showErrorNotification("Error placing bet", error.message || "An error occurred while placing your bet.");
+          },
+        });
+    },
+    onError: (error) => {
+      console.error("Connection error:", error);
+      showErrorNotification("Connection Error", error.message || "An error occurred while connecting.");
+    },
+  });
+}
+
+
+
+
 
 
 export function connectToChat(handlePayload){
