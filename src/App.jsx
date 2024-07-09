@@ -9,7 +9,7 @@ import RechartsChart2 from "./components/RechartsChart2";
 import { useMutation, useQuery } from "react-query";
 import { Notifications } from "@mantine/notifications";
 import { Chat } from "./components/chat/Chat";
-import { getMozzartToken, getUserData } from "./communication/rest";
+import { getMozzartToken, getUserData,getUser, getCasinoConfiguration } from "./communication/rest";
 import { connectToGameState } from "./communication/socket";
 
 function App() {
@@ -27,29 +27,47 @@ function App() {
   const [audioPermission, setAudioPermission] = useState(false);
   const [gameState, setGameState] = useState("");
   const [tick, setTick] = useState(0);
+  const [casinoConfigurationData,setCasinoConfigurationData] =useState()
 
-
-  const { data, isLoading, refetch: getUser } = useQuery({
+  const { data:user, isLoading, refetch } = useQuery({
     queryKey: ["user"], 
-    queryFn:  ()=>getUserData(), 
-    enabled: false,
-    retry:false
+    queryFn:  ()=>getUser(), 
+    enabled:true,
+    refetchInterval:1000
   });
+
+
+  const { data:casinoConfiguration, refetch:refetchCasinoConfiguration } = useQuery({
+    queryKey: ["casino-configuration"], 
+    queryFn:  ()=>getCasinoConfiguration(), 
+    enabled:true,
+  });
+
+  useEffect(()=>{
+      setCasinoConfigurationData(casinoConfiguration?.data?.data.configuration)
+  },[casinoConfiguration])
+
+
+  // const { data:userData, isLoading:isUserDataLoading } = useQuery({
+  //   queryKey: ["user"], 
+  //   queryFn:  ()=>getUserData(), 
+  //   retry:false,
+  // });
 
   const addAccountMutation = useMutation((userToken) => getMozzartToken(userToken), {
     onSuccess: (response) => {
-      console.log(response)
       if (response.data) {
         const jwt = response.data.accessToken;
         localStorage.setItem('accessToken', jwt);
-        getUser(); // Call the refetch method to get user data
+        // getUser(); // Call the refetch method to get user data
       }
     },
   });
 
   useEffect(() => {
+    refetchCasinoConfiguration()
     const messageHandler = (event) => {
-      if (event.origin !== 'http://localhost:5174') { // Replace with the origin of the parent window
+      if (event.origin !== 'http://localhost:5173') { // Replace with the origin of the parent window
         return;
       }
 
@@ -73,9 +91,9 @@ function App() {
   }, [width, height]);
 
   useEffect(() => {
-    console.log(data?.data)
-    setCurrentUser(data?.data);
-  }, [data]);
+    console.log(user?.data)
+    setCurrentUser(user?.data);
+  }, [user]);
 
   // Initialize socket connection
   useEffect(() => {
@@ -206,6 +224,7 @@ function App() {
                 lastValue={lastValue}
                 currentUser={currentUser}
                 isAnimationOn={isAnimationOn}
+                casinoConfigurationData={casinoConfigurationData}
               />
             </Box>
             <Box style={{ width: "15%", maxHeight: "100%" }}>

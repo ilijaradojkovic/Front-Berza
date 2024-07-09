@@ -18,11 +18,16 @@ export const getAllBetsAPI=(page,size)=>{
     // })
 }
 export const getMyBetsAPI=(page,size)=>{
+    const authToken = localStorage.getItem('accessToken');
+
     return  axios.get(`${BASE_URL}/bets/my-bets`,{
         params: {
             size: size,
             page: page
-          }
+          },
+          headers: {
+            'Authorization': `Bearer ${authToken}`
+        }
     })
 }
 
@@ -54,9 +59,28 @@ export const getBetsTopWins=(page,size,topWinsType,groupByType,email)=>{
     })
 }
 
+export const getUser = () => {
+    const authToken = localStorage.getItem('accessToken');
+    if(!authToken) return
+    return axios.get(`${BASE_URL}/users/user`, {
+        headers: {
+            'Authorization': `Bearer ${authToken}`
+        }
+    });
+}
+export const getCasinoConfiguration = () => {
+    const authToken = localStorage.getItem('accessToken');
+    if(!authToken) return
+    return axios.get(`${BASE_URL}/config/casino/constants`, {
+        headers: {
+            'Authorization': `Bearer ${authToken}`
+        }
+    });
+}
+
 export const getUserData = () => {
     const authToken = localStorage.getItem('accessToken');
-    return axios.get(`${BASE_URL}/users/user`, {
+    return axios.get(`${BASE_URL}/users/user/balance`, {
         headers: {
             'Authorization': `Bearer ${authToken}`
         }

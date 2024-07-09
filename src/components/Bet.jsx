@@ -38,12 +38,13 @@ const Bet = ({
   currentMultiplier,
   currentUser,
   isGoingDown,
+  casinoConfigurationData
 }) => {
   const [betAmount, setBetAmount] = useState(100);
   const [autoCashOutAmount, setAutoCashOutAmount] = useState(1.6);
   const [autoCashOut, setAutoCashOut] = useState(false);
-  const optionsMoneyToBet = [1, 2, 5, 10];
-  const [betOptionMoney, setBetOptionMoney] = useState(optionsMoneyToBet[0]);
+  const [optionsMoneyToBet,seOptionsMoneyToBet] = useState([]);
+  const [betOptionMoney, setBetOptionMoney] = useState();
   const [isBeting, setIsBeting] = useState(false);
   const [isSold, setIsSold] = useState(false);
   const [client, setClient] = useState();
@@ -67,6 +68,20 @@ const Bet = ({
       setIsAutoCashOutDone(false);
     }
   }, [gameState]);
+
+  useEffect(()=>{
+    if(!casinoConfigurationData) return
+    seOptionsMoneyToBet([casinoConfigurationData.incrementor1,casinoConfigurationData.incrementor2,casinoConfigurationData.incrementor3,casinoConfigurationData.incrementor4])
+  },[casinoConfigurationData])
+
+  useEffect(()=>{
+
+    if( optionsMoneyToBet &&  optionsMoneyToBet.length>0){
+      setBetOptionMoney(optionsMoneyToBet[0])
+
+    }
+  },[optionsMoneyToBet])
+
 
   useEffect(() => {
     if (
@@ -248,9 +263,11 @@ const Bet = ({
   }
 
   const placeCancel = () => {
+    const userToken=localStorage.getItem('accessToken')
     const requestDataCancel = {
       betType: "CANCEL",
       betId: bet.id,
+      jwt: userToken
     };
 
     connectToCancelBet(

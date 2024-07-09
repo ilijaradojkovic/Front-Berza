@@ -162,6 +162,7 @@ const RechartsChart2 = ({
   lastValue,
   currentUser,
   isAnimationOn,
+  casinoConfigurationData
 }) => {
   const { width, height } = useViewportSize();
   const [isBackgroundPlaying, setIsBackgroundPlaying] = useState(true);
@@ -560,6 +561,7 @@ const RechartsChart2 = ({
         currentMultiplier={currentMultiplier}
         currentUser={currentUser}
         isGoingDown={isGoingDown}
+        casinoConfigurationData={casinoConfigurationData}
       />
     </Box>
   );

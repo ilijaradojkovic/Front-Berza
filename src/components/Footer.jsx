@@ -2,7 +2,7 @@ import { Box } from "@mantine/core";
 import React from "react";
 import Bet from "./Bet";
 
-const Footer = ({ setStart, isLandScape, gameOver, setBalance, balance, currentValue, bets, setBets, investory, setInvestory, wins, setWins, loses, setLoses, coinsRef, coins2Ref, audioPermission, prevValue ,gameState,isPlaying,currentMultiplier,currentUser,isGoingDown }) => {
+const Footer = ({ setStart, isLandScape, gameOver, setBalance, balance, currentValue, bets, setBets, investory, setInvestory, wins, setWins, loses, setLoses, coinsRef, coins2Ref, audioPermission, prevValue ,gameState,isPlaying,currentMultiplier,currentUser,isGoingDown,casinoConfigurationData}) => {
   return (
     <Box
     style={{
@@ -36,6 +36,7 @@ const Footer = ({ setStart, isLandScape, gameOver, setBalance, balance, currentV
         currentMultiplier={currentMultiplier}
         currentUser={currentUser}
         isGoingDown={isGoingDown}
+        casinoConfigurationData={casinoConfigurationData}
       />
       <Bet
         setStart={setStart}
@@ -60,6 +61,7 @@ const Footer = ({ setStart, isLandScape, gameOver, setBalance, balance, currentV
         currentMultiplier={currentMultiplier}
         currentUser={currentUser}
         isGoingDown={isGoingDown}
+        casinoConfigurationData={casinoConfigurationData}
 
       />
     </Box>
