@@ -255,6 +255,8 @@ const Bet = ({
       jwt: userToken,
       betType: "CASHOUT",
       betId: bet.id,
+      isGoingDown:isGoingDown
+
     };
     
     connectToCashOutBet(handleCashOutBetPayload,requestData)
@@ -278,6 +280,7 @@ const Bet = ({
 
   }
 
+  //We call this method and then based on state its bet,sell or cancel
   const handleBet = () => {
     if (isWaitingState(gameState) && !bet) placeBet();
     else if (isWaitingState(gameState) && bet) placeCancel();
@@ -285,6 +288,7 @@ const Bet = ({
       placeSell();
     }
   };
+  //This method sets text in BET button, and depends on state of game and state of bet
   const getButtonText = () => {
     if (isWaitingState(gameState)) {
       if (!bet) return "Bet";

@@ -44,111 +44,111 @@ import { useSpring, animated } from "react-spring";
 import { greenColor, redColor } from "../colors/colors";
 import { connectToGamePoints } from "../communication/socket";
 
-const CustomDot = ({ x, y, value, isLandScape, gameOver, audioPermission }) => {
-  const animContainer = useRef(null);
-  const anim = useRef(null);
-  const prevValue = useRef(value);
+// const CustomDot = ({ x, y, value, isLandScape, gameOver, audioPermission }) => {
+//   const animContainer = useRef(null);
+//   const anim = useRef(null);
+//   const prevValue = useRef(value);
 
-  const [isIncreasing, setIsIncreasing] = useState(false);
+//   const [isIncreasing, setIsIncreasing] = useState(false);
 
-  const [falling, setFalling] = useState(false);
+//   const [falling, setFalling] = useState(false);
 
-  const [scale, setScale] = useState(false);
+//   const [scale, setScale] = useState(false);
 
-  // useEffect(() => {
-  //   if (value < 1) {
-  //     setFalling(true);
-  //   } else {
-  //     setFalling(false);
-  //   }
-  // }, [value]);
+//   // useEffect(() => {
+//   //   if (value < 1) {
+//   //     setFalling(true);
+//   //   } else {
+//   //     setFalling(false);
+//   //   }
+//   // }, [value]);
 
-  // useEffect(() => {
-  //   if (falling) {
-  //     setScale(true);
-  //     const timeout = setTimeout(() => {
-  //       setScale(false);
-  //     }, 1000);
-  //   }
-  // }, [falling]);
+//   // useEffect(() => {
+//   //   if (falling) {
+//   //     setScale(true);
+//   //     const timeout = setTimeout(() => {
+//   //       setScale(false);
+//   //     }, 1000);
+//   //   }
+//   // }, [falling]);
 
-  // // useEffect(() => {
-  // //   const audio = new Audio(fail);
-  // //   if (falling && audioPermission) {
-  // //     audio.play();
-  // //   }
-  // // }, [falling, audioPermission]);
+//   // // useEffect(() => {
+//   // //   const audio = new Audio(fail);
+//   // //   if (falling && audioPermission) {
+//   // //     audio.play();
+//   // //   }
+//   // // }, [falling, audioPermission]);
 
-  // useEffect(() => {
-  //   // Ako je igra završena, učitava se animacija eksplozije
-  //   const animationData = falling ? explosion : myLottieAnimation;
-  //   const loop = falling ? false : true;
-  //   const speed = falling ? 1 : 1;
+//   // useEffect(() => {
+//   //   // Ako je igra završena, učitava se animacija eksplozije
+//   //   const animationData = falling ? explosion : myLottieAnimation;
+//   //   const loop = falling ? false : true;
+//   //   const speed = falling ? 1 : 1;
 
-  //   anim.current = lottie.loadAnimation({
-  //     container: animContainer.current,
-  //     renderer: "svg",
-  //     loop: loop,
-  //     // speed: speed,
-  //     autoplay: true,
-  //     rendererSettings: {
-  //       preserveAspectRatio: "xMidYMid slice",
-  //     },
-  //     animationData: animationData,
-  //   });
-  //   anim.current.setSpeed(speed);
+//   //   anim.current = lottie.loadAnimation({
+//   //     container: animContainer.current,
+//   //     renderer: "svg",
+//   //     loop: loop,
+//   //     // speed: speed,
+//   //     autoplay: true,
+//   //     rendererSettings: {
+//   //       preserveAspectRatio: "xMidYMid slice",
+//   //     },
+//   //     animationData: animationData,
+//   //   });
+//   //   anim.current.setSpeed(speed);
 
-  //   return () => anim.current.destroy();
-  // }, [falling]);
+//   //   return () => anim.current.destroy();
+//   // }, [falling]);
 
-  // useEffect(() => {
-  //   if (value > prevValue.current) {
-  //     setIsIncreasing(true);
-  //   } else if (value < prevValue.current) {
-  //     setIsIncreasing(false);
-  //   }
-  //   prevValue.current = value;
-  // }, [value]);
+//   // useEffect(() => {
+//   //   if (value > prevValue.current) {
+//   //     setIsIncreasing(true);
+//   //   } else if (value < prevValue.current) {
+//   //     setIsIncreasing(false);
+//   //   }
+//   //   prevValue.current = value;
+//   // }, [value]);
 
-  // useEffect(() => {
-  //   if (isIncreasing) {
-  //     anim.current.playSegments([5, 22], true);
-  //   } else {
-  //     anim.current.playSegments([22, 55], true);
-  //   }
-  // }, [isIncreasing]);
+//   // useEffect(() => {
+//   //   if (isIncreasing) {
+//   //     anim.current.playSegments([5, 22], true);
+//   //   } else {
+//   //     anim.current.playSegments([22, 55], true);
+//   //   }
+//   // }, [isIncreasing]);
 
-  return (
-    <svg
-      x={isLandScape ? (value < 1 ? x - 20 : x - 30) : x - 10}
-      y={isLandScape ? y - 20 : y - 10}
-      width={isLandScape ? 50 : 30}
-      height={isLandScape ? 50 : 30}
-      transform={`scale(2)`}
-      style={{
-        overflow: "visible !important",
-      }}
-    >
-      <foreignObject
-        width="100%"
-        height="100%"
-        transform={`scale(${scale ? 5.5 : 1})`}
-        style={{
-          translate: `${gameOver ? 1.5 : 1}}`,
-          transition: `all ${gameOver ? 1.5 : 0}s ease-in-out 0.2s`,
-          transformOrigin: "center",
-        }}
-      >
-        <div
-          ref={animContainer}
-          style={{
-            overflow: "visible !important",
-          }}
-        />
-      </foreignObject>
-    </svg>
-  );
-};
+//   return (
+//     <svg
+//       x={isLandScape ? (value < 1 ? x - 20 : x - 30) : x - 10}
+//       y={isLandScape ? y - 20 : y - 10}
+//       width={isLandScape ? 50 : 30}
+//       height={isLandScape ? 50 : 30}
+//       transform={`scale(2)`}
+//       style={{
+//         overflow: "visible !important",
+//       }}
+//     >
+//       <foreignObject
+//         width="100%"
+//         height="100%"
+//         transform={`scale(${scale ? 5.5 : 1})`}
+//         style={{
+//           translate: `${gameOver ? 1.5 : 1}}`,
+//           transition: `all ${gameOver ? 1.5 : 0}s ease-in-out 0.2s`,
+//           transformOrigin: "center",
+//         }}
+//       >
+//         <div
+//           ref={animContainer}
+//           style={{
+//             overflow: "visible !important",
+//           }}
+//         />
+//       </foreignObject>
+//     </svg>
+//   );
+// };
 
 const RechartsChart2 = ({
   isLandScape,
