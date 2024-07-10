@@ -23,7 +23,9 @@ export const MenuComponent = ({
   toggleSoundSetting,
   toggleMusicSetting,
   toggleAnimationSetting,
+  handleImageChange,
   currentUser,
+  selectedImageIndex
 }) => {
 
   const [openedMenu, { open: openMenu, close: closeMenu }] =
@@ -35,15 +37,14 @@ export const MenuComponent = ({
   const [selectedImageUrl, setSelectedImageUrl] = useState(
     "/src/assets/images/avatar1.jpg"
   );
-  const [selectedImageIndex, setSelectedimageIndex] = useState(0);
 
   const handleChangeAvatarClicked = () => {
     setMenuItemSelected(1);
     openMenu();
   };
   const handleSelectedAvatar = (index, urlImage) => {
-    setSelectedimageIndex(index);
     setSelectedImageUrl(urlImage);
+    handleImageChange(index)
   };
 
   const handleOptionSelected = (value) => {
@@ -52,7 +53,6 @@ export const MenuComponent = ({
   };
 
   useEffect(() => {
-    setSelectedimageIndex(currentUser?.preferences.imageIndex);
     setSelectedImageUrl(images[currentUser?.preferences.imageIndex]);
   }, [currentUser]);
 

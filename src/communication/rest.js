@@ -99,3 +99,11 @@ export const fetchUser=()=>{
 export const sendMessage=(message)=>{
     return axios.post(`${BASE_URL}/chat/send`,message)
 }
+
+export const updateUserPreferences=(userPreferences)=>{
+    const authToken = localStorage.getItem('accessToken');
+    return axios.put(`${BASE_URL}/users/user/update/preferences`,userPreferences,{
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+      }})
+}

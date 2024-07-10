@@ -20,7 +20,9 @@ const Navbar = ({
  isAnimationOn,
  toggleSoundSetting,
  toggleMusicSetting,
- toggleAnimationSetting
+ toggleAnimationSetting,
+ handleImageChange,
+ selectedImageIndex
 }) => {
 
   const [openMenu,setOpenMenu] = useState(false)
@@ -167,6 +169,8 @@ const Navbar = ({
               toggleMusicSetting={toggleMusicSetting}
               toggleSoundSetting={toggleSoundSetting}
               currentUser={currentUser}
+              handleImageChange={handleImageChange}
+              selectedImageIndex={selectedImageIndex}
           />
 
         </Box>

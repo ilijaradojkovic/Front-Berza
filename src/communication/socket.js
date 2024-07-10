@@ -1,5 +1,7 @@
+import { toast } from "react-toastify";
 import { RSocketClient } from "rsocket-core";
 import RSocketWebSocketClient from "rsocket-websocket-client";
+import { showErrorNotification } from "../components/util/notificationSystem";
 
 const BASE_URL='ws://localhost:9001/'
 
@@ -35,7 +37,8 @@ export function connectToGameState(handlePayload){
                 console.log("complete");
               },
               onError: (error) => {
-                console.log(error);
+                console.error("Connection error:", error);
+                showErrorNotification("Connection has been closed")
               },
               onNext: (payload) => {
                 let dataFromSocket = JSON.parse(payload.data);
@@ -47,7 +50,8 @@ export function connectToGameState(handlePayload){
             });
         },
         onError: (error) => {
-          console.log(error);
+          console.error("Connection error:", error);
+          showErrorNotification("Error getting game state")
         },
         onSubscribe: (cancel) => {},
       });
@@ -68,7 +72,9 @@ export function connectToGamePoints(handlePayload){
                 console.log("complete");
               },
               onError: (error) => {
-                console.log(error);
+                console.error("Connection error:", error);
+                showErrorNotification("Connection has been closed")
+
                 // addErrorMessage("Connection has been closed due to ", error);
               },
               onNext: (payload) => {
@@ -84,6 +90,8 @@ export function connectToGamePoints(handlePayload){
         },
         onError: (error) => {
           console.log(error);
+          showErrorNotification("Connection has been closed")
+
           // addErrorMessage("Connection has been refused due to ", error);
         },
       });
@@ -105,19 +113,20 @@ export function connectToCashInBet(handlePayload, data) {
           },
           onError: (error) => {
             console.error("Error placing bet:", error);
-            showErrorNotification("Error placing bet", error.message || "An error occurred while placing your bet.");
+            showErrorNotification("Error placing bet "+ error.message)
+
           },
         });
     },
     onError: (error) => {
       console.error("Connection error:", error);
-      showErrorNotification("Connection Error", error.message || "An error occurred while connecting.");
+      showErrorNotification("Connection has been closed")
+
     },
   });
 }
 
 export function connectToCashOutBet(handlePayload,data){
-  console.log(data)
   const client =clientSetup();
   client.connect().subscribe({
     onComplete: (socket) => {
@@ -131,14 +140,16 @@ export function connectToCashOutBet(handlePayload,data){
             handlePayload(null);
           },
           onError: (error) => {
-            console.log("Error placing bet:", error);
-            // Handle error states
+            console.log("Error cashout bet:", error);
+            showErrorNotification("Error cashout bet "+ error.message)
+
           },
         });
     },
     onError: (error) => {
       console.log("Connection error:", error);
-      // Handle connection errors
+      showErrorNotification("Connection has been closed")
+
     },
   });
 
@@ -159,14 +170,14 @@ export function connectToCancelBet(handlePayload, data) {
             handlePayload(response); // Pass the response to the handlePayload function
           },
           onError: (error) => {
-            console.error("Error placing bet:", error);
-            showErrorNotification("Error placing bet", error.message || "An error occurred while placing your bet.");
+            console.error("Error cancel bet:", error);
+            showErrorNotification("Error cancel bet " +error.message)
           },
         });
     },
     onError: (error) => {
       console.error("Connection error:", error);
-      showErrorNotification("Connection Error", error.message || "An error occurred while connecting.");
+      showErrorNotification("Connection has been closed")
     },
   });
 }
@@ -193,6 +204,7 @@ export function connectToChat(handlePayload){
             onError: (error) => {
               console.log(error);
               // addErrorMessage("Connection has been closed due to ", error);
+              showErrorNotification("")
             },
             onNext: (payload) => {
               let socketData = JSON.parse(payload.data);
@@ -208,6 +220,7 @@ export function connectToChat(handlePayload){
       onError: (error) => {
         console.log(error);
         // addErrorMessage("Connection has been refused due to ", error);
+        showErrorNotification("Connection has been closed")
       },
     });
 }

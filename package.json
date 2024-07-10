@@ -28,6 +28,7 @@
     "react-konva": "^18.2.10",
     "react-query": "^3.39.3",
     "react-spring": "^9.7.3",
+    "react-toastify": "^10.0.5",
     "recharts": "^2.10.1",
     "rsocket-core": "^0.0.29-alpha.0",
     "rsocket-tcp-client": "^0.0.29-alpha.0",

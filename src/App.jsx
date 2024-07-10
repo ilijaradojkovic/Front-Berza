@@ -9,8 +9,9 @@ import RechartsChart2 from "./components/RechartsChart2";
 import { useMutation, useQuery } from "react-query";
 import { Notifications } from "@mantine/notifications";
 import { Chat } from "./components/chat/Chat";
-import { getMozzartToken, getUserData,getUser, getCasinoConfiguration } from "./communication/rest";
+import { getMozzartToken, getUserData,getUser, getCasinoConfiguration, updateUserPreferences } from "./communication/rest";
 import { connectToGameState } from "./communication/socket";
+import { ToastContainer } from "react-toastify";
 
 function App() {
   const backgroundMusic = useRef(null);
@@ -18,7 +19,7 @@ function App() {
   const [isSoundOn, setIsSoundOn] = useState(false);
   const [isMusicOn, setIsMusicOn] = useState(false);
   const [isAnimationOn, setIsAnimationOn] = useState(false);
-
+  const [currentAvatarSelectedIndex,setCurrentAvatarSelectedIndex] =useState(0)
   const [isLandScape, setIsLandscape] = useState(false);
   const [lastValue, setLastValue] = useState(0);
   const { width, height } = useViewportSize();
@@ -28,6 +29,25 @@ function App() {
   const [gameState, setGameState] = useState("");
   const [tick, setTick] = useState(0);
   const [casinoConfigurationData,setCasinoConfigurationData] =useState()
+  
+  const updateUserPreferencesMutation = useMutation((userPreferences) => updateUserPreferences(userPreferences), {
+    onSuccess: (response) => {
+      if (response.data) {
+       console.log(response.data)
+        // getUser(); // Call the refetch method to get user data
+      }
+    },
+  });
+
+  const addAccountMutation = useMutation((userToken) => getMozzartToken(userToken), {
+    onSuccess: (response) => {
+      if (response.data) {
+        const jwt = response.data.accessToken;
+        localStorage.setItem('accessToken', jwt);
+        // getUser(); // Call the refetch method to get user data
+      }
+    },
+  });
 
   const { data:user, isLoading, refetch } = useQuery({
     queryKey: ["user"], 
@@ -54,15 +74,7 @@ function App() {
   //   retry:false,
   // });
 
-  const addAccountMutation = useMutation((userToken) => getMozzartToken(userToken), {
-    onSuccess: (response) => {
-      if (response.data) {
-        const jwt = response.data.accessToken;
-        localStorage.setItem('accessToken', jwt);
-        // getUser(); // Call the refetch method to get user data
-      }
-    },
-  });
+
 
   useEffect(() => {
     refetchCasinoConfiguration()
@@ -91,8 +103,15 @@ function App() {
   }, [width, height]);
 
   useEffect(() => {
-    console.log(user?.data)
-    setCurrentUser(user?.data);
+    let userData=user?.data?.data?.user;
+    if(userData){
+      setIsAnimationOn(currentUser?.preferences.isAnimationOn);
+      setIsMusicOn(currentUser?.preferences.isMusicOn);
+      setIsSoundOn(currentUser?.preferences.isSoundOn);
+      setCurrentAvatarSelectedIndex(currentUser?.preferences.imageIndex)
+      setCurrentUser(userData);
+
+    }
   }, [user]);
 
   // Initialize socket connection
@@ -119,11 +138,50 @@ function App() {
     else pauseSound();
   }, [isMusicOn]);
 
-  useEffect(() => {
-    setIsAnimationOn(currentUser?.preferences.isAnimationOn);
-    setIsMusicOn(currentUser?.preferences.isMusicOn);
-    setIsSoundOn(currentUser?.preferences.isSoundOn);
-  }, [currentUser]);
+
+
+  const handleSoundChangedOption=()=>{
+    setIsSoundOn(!isSoundOn)
+    updateUserPreferencesMutation.mutate({
+      isSoundOn:!isSoundOn,
+      isMusicOn:isMusicOn,
+      isAnimationOn:isAnimationOn,
+      imageIndex:currentAvatarSelectedIndex
+    })
+  }
+
+
+  const handleMusicChangedOption=()=>{
+    setIsMusicOn(!isMusicOn)
+    updateUserPreferencesMutation.mutate({
+      isSoundOn:isSoundOn,
+      isMusicOn:!isMusicOn,
+      isAnimationOn:isAnimationOn,
+      imageIndex:currentAvatarSelectedIndex
+    })
+  }
+
+
+  const handleAnimaitonChangedOption=()=>{
+    setIsAnimationOn(!isAnimationOn)
+    updateUserPreferencesMutation.mutate({
+      isSoundOn:isSoundOn,
+      isMusicOn:isMusicOn,
+      isAnimationOn:!isAnimationOn,
+      imageIndex:currentAvatarSelectedIndex
+    })
+  }
+
+  const handleImageChange=(index)=>{
+    setCurrentAvatarSelectedIndex(index)
+    updateUserPreferencesMutation.mutate({
+      isSoundOn:isSoundOn,
+      isMusicOn:isMusicOn,
+      isAnimationOn:isAnimationOn,
+      imageIndex:index
+    })
+  }
+
 
   return (
     <MantineProvider
@@ -174,9 +232,11 @@ function App() {
             isSoundOn={isSoundOn}
             isMusicOn={isMusicOn}
             isAnimationOn={isAnimationOn}
-            toggleSoundSetting={() => setIsSoundOn(!isSoundOn)}
-            toggleMusicSetting={() => setIsMusicOn(!isMusicOn)}
-            toggleAnimationSetting={() => setIsAnimationOn(!isAnimationOn)}
+            selectedImageIndex={currentAvatarSelectedIndex}
+            toggleSoundSetting={() => handleSoundChangedOption()}
+            toggleMusicSetting={() => handleMusicChangedOption()}
+            toggleAnimationSetting={() => handleAnimaitonChangedOption()}
+            handleImageChange={(index)=>handleImageChange(index)}
           />
         </Box>
         <Box
@@ -233,6 +293,7 @@ function App() {
           </Box>
         </Box>
       </Box>
+    
     </MantineProvider>
   );
 }
