@@ -1,42 +1,66 @@
 import { BreakfastDiningOutlined } from "@mui/icons-material"
 import axios from "axios"
 
-const BASE_URL='http://localhost:8001/api'
+const SAFE_ROUTES = ['/users/user/auth',]; // Add more safe routes as needed
+const BASE_URL = 'http://localhost:8001/api';
 
+const axiosWithInterceptor = axios.create({
+    baseURL: BASE_URL, // Replace with your API base URL
+});
+
+axiosWithInterceptor.interceptors.request.use(
+    (config) => {
+        // Check if the URL contains any of the safe routes
+        if (SAFE_ROUTES.some(route => config.url.includes(route))) {
+            console.log('safe foute ' + config.url)
+            return config;
+        }
+        
+        // Get the token from localStorage
+        const token = localStorage.getItem('accessToken');
+        
+        // If the token exists, add it to the Authorization header
+        if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+        }
+    
+        return config;
+    },
+    (error) => {
+        // Handle the error
+        return Promise.reject(error);
+    }
+);
+
+//======================================================ROUTES======================================================//
 export const getHistoryOfGames=(page,size)=>{
- 
-    return axios.get(`${BASE_URL}/games/history?page=${page}&size=${size}`)
-
+    return axiosWithInterceptor.get(`${BASE_URL}/games/history?page=${page}&size=${size}`)
 }
 
 export const getAllBetsAPI=(page,size)=>{
-    // return axios.get(`${BASE_URL}/bets/live`,{
-    //     params: {
-    //         size: size,
-    //         page: page
-    //       }
-    // })
-}
-export const getMyBetsAPI=(page,size)=>{
-    const authToken = localStorage.getItem('accessToken');
-
-    return  axios.get(`${BASE_URL}/bets/my-bets`,{
+    return axiosWithInterceptor.get(`${BASE_URL}/bets/live`,{
         params: {
             size: size,
             page: page
-          },
-          headers: {
-            'Authorization': `Bearer ${authToken}`
-        }
+          }
+    })
+}
+export const getMyBetsAPI=(page,size)=>{
+
+    return  axiosWithInterceptor.get(`${BASE_URL}/bets/my-bets`,{
+        params: {
+            size: size,
+            page: page
+          }
     })
 }
 
 export const getMozzartToken=(submitToken)=>{
-    return axios.post(`${BASE_URL}/users/user/auth`,submitToken)
+    return axiosWithInterceptor.post(`${BASE_URL}/users/user/auth`,submitToken)
 }
 
 
-export const getBetsTopWins=(page,size,topWinsType,groupByType,email)=>{
+export const getBetsTopWins=(page,size,topWinsType,groupByType)=>{
     const betHighestType=topWinsType==0?'BY_MULTIPLIER':'BY_AMOUNT'
     let betGroupByType=0;
     switch(groupByType){
@@ -47,48 +71,31 @@ export const getBetsTopWins=(page,size,topWinsType,groupByType,email)=>{
     }
 
 
-    return  axios.get(`${BASE_URL}/bets/highest`,{
+    return  axiosWithInterceptor.get(`${BASE_URL}/bets/highest`,{
         params: {
             size: size,
             page: page,
             type:betHighestType,
             group_by:betGroupByType,
-            email:email
+            
 
           }
     })
 }
 
 export const getUser = () => {
-    const authToken = localStorage.getItem('accessToken');
-    if(!authToken) return
-    return axios.get(`${BASE_URL}/users/user`, {
-        headers: {
-            'Authorization': `Bearer ${authToken}`
-        }
-    });
+    return axiosWithInterceptor.get(`${BASE_URL}/users/user`);
 }
 export const getCasinoConfiguration = () => {
-    const authToken = localStorage.getItem('accessToken');
-    if(!authToken) return
-    return axios.get(`${BASE_URL}/config/casino/constants`, {
-        headers: {
-            'Authorization': `Bearer ${authToken}`
-        }
-    });
+    return axiosWithInterceptor.get(`${BASE_URL}/config/casino/constants`);
 }
 
 export const getUserData = () => {
-    const authToken = localStorage.getItem('accessToken');
-    return axios.get(`${BASE_URL}/users/user/balance`, {
-        headers: {
-            'Authorization': `Bearer ${authToken}`
-        }
-    });
+    return axiosWithInterceptor.get(`${BASE_URL}/users/user/balance`);
 }
 
 export const fetchUser=()=>{
-    return axios.get(`${BASE_URL}/bets/count/currentGame`)
+    return axiosWithInterceptor.get(`${BASE_URL}/bets/count/currentGame`)
 }
 
 //prebacili na socket
@@ -97,22 +104,14 @@ export const fetchUser=()=>{
 // }
 
 export const sendMessage=(message)=>{
-    return axios.post(`${BASE_URL}/chat/send`,message)
+    return axiosWithInterceptor.post(`${BASE_URL}/chat/send`,message)
 }
 
 export const updateUserPreferences=(userPreferences)=>{
-    const authToken = localStorage.getItem('accessToken');
-    return axios.put(`${BASE_URL}/users/user/update/preferences`,userPreferences,{
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-      }})
+    return axiosWithInterceptor.put(`${BASE_URL}/users/user/update/preferences`,userPreferences)
 }
 export const updateUserBalance=()=>{
-    const authToken = localStorage.getItem('accessToken');
-    return axios.put(`${BASE_URL}/users/user/update/balance`,null,{
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-      }})
+    return axiosWithInterceptor.put(`${BASE_URL}/users/user/update/balance`,null)
 }
 
 
