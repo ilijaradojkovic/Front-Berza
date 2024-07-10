@@ -9,7 +9,7 @@ import RechartsChart2 from "./components/RechartsChart2";
 import { useMutation, useQuery } from "react-query";
 import { Notifications } from "@mantine/notifications";
 import { Chat } from "./components/chat/Chat";
-import { getMozzartToken, getUserData,getUser, getCasinoConfiguration, updateUserPreferences } from "./communication/rest";
+import { getMozzartToken, getUserData,getUser, getCasinoConfiguration, updateUserPreferences, updateUserBalance } from "./communication/rest";
 import { connectToGameState } from "./communication/socket";
 import { ToastContainer } from "react-toastify";
 
@@ -29,6 +29,7 @@ function App() {
   const [gameState, setGameState] = useState("");
   const [tick, setTick] = useState(0);
   const [casinoConfigurationData,setCasinoConfigurationData] =useState()
+  const [isAvailableToUpdateBalance,setIsAvailableToUpdateBalance]=useState(false)
   
   const updateUserPreferencesMutation = useMutation((userPreferences) => updateUserPreferences(userPreferences), {
     onSuccess: (response) => {
@@ -42,12 +43,15 @@ function App() {
   const addAccountMutation = useMutation((userToken) => getMozzartToken(userToken), {
     onSuccess: (response) => {
       if (response.data) {
-        const jwt = response.data.accessToken;
+        const jwt = response.data?.data.session.accessToken;
         localStorage.setItem('accessToken', jwt);
         // getUser(); // Call the refetch method to get user data
       }
     },
   });
+
+
+
 
   const { data:user, isLoading, refetch } = useQuery({
     queryKey: ["user"], 
@@ -116,14 +120,20 @@ function App() {
 
   // Initialize socket connection
   useEffect(() => {
-    connectToGameState(handlePayload);
+    connectToGameState(handleGameStatePayload);
   }, []);
 
-  const handlePayload = (payload) => {
+  const handleGameStatePayload = (payload) => {
     setTick(payload.tick);
     setLastValue(payload.lastValue);
-    if (payload.gameState !== gameState) setGameState(payload.gameState);
+    if (payload.gameState !== gameState){
+      setGameState(payload.gameState);
+        
+    } 
+   
   };
+
+
 
   const playSound = () => {
     backgroundMusic.current.play();

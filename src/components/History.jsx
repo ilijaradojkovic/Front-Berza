@@ -17,6 +17,8 @@ const History = ({ gameState }) => {
   useEffect(() => {
     refetch();
   }, [gameState]);
+
+
   return (
     <>
       <Modal
@@ -70,7 +72,7 @@ const History = ({ gameState }) => {
             flexWrap: "nowrap", // Prevent wrapping
           }}
         >
-          {data?.data?.map((item, index) => (
+          {data?.data?.data?.games.map((item, index) => (
             <Box
               key={index}
               style={{

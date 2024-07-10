@@ -33,7 +33,7 @@ export const GameHistory=({gameState,close})=>{
     >
         <Box style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
 
-        {data?.data?.map((item, index) => (
+        {data?.data?.data?.games.map((item, index) => (
             <Box
               key={index}
               style={{

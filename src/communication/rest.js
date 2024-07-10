@@ -107,3 +107,12 @@ export const updateUserPreferences=(userPreferences)=>{
           'Authorization': `Bearer ${authToken}`
       }})
 }
+export const updateUserBalance=()=>{
+    const authToken = localStorage.getItem('accessToken');
+    return axios.put(`${BASE_URL}/users/user/update/balance`,null,{
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+      }})
+}
+
+

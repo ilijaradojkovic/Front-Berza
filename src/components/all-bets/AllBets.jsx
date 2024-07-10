@@ -31,12 +31,12 @@ export const AllBets = ({notifyIncomingBets}) => {
 
   useEffect(()=>{
     if(data)
-    notifyIncomingBets(data.data)
+    notifyIncomingBets(data?.data?.data?.bets)
   },[data])
 
   return (
     <tbody  style={{width:'100%',overflowY: 'auto' }}>
-      {data?.data?.map((x) => (
+      {data?.data?.data?.bets?.map((x) => (
         <tr key={x.id} className={getRowClassName(x.multiplier)}>
           <td align="center">{timeFormat(x.time)}</td>
           <td align="center">{x.amount}</td>

@@ -43,6 +43,8 @@ import {
 import { useSpring, animated } from "react-spring";
 import { greenColor, redColor } from "../colors/colors";
 import { connectToGamePoints } from "../communication/socket";
+import { updateUserBalance } from "../communication/rest";
+import { useMutation } from "react-query";
 
 // const CustomDot = ({ x, y, value, isLandScape, gameOver, audioPermission }) => {
 //   const animContainer = useRef(null);
@@ -164,6 +166,16 @@ const RechartsChart2 = ({
   isAnimationOn,
   casinoConfigurationData
 }) => {
+
+  const updateUserBalanceMutation = useMutation(() => updateUserBalance(), {
+    onSuccess: (response) => {
+      if (response.data) {
+       console.log(response.data)
+        // getUser(); // Call the refetch method to get user data
+      }
+    },
+  });
+
   const { width, height } = useViewportSize();
   const [isBackgroundPlaying, setIsBackgroundPlaying] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -208,6 +220,7 @@ const RechartsChart2 = ({
       setIsPlaying(true);
     } else if (isFinishedState(gameState)) {
       setGameOver(true);
+      updateUserBalanceMutation.mutate()
     }
   }, [gameState]);
 
