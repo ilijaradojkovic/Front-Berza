@@ -110,7 +110,7 @@ const Navbar = ({
           gap: "20px",
         }}
       >
-        <Box>Username</Box>
+        <Box>{currentUser?.username}</Box>
 
         <Divider sx={{ opacity: "40%" }} orientation="vertical" />
 

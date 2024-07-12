@@ -34,47 +34,58 @@ export const AllBets = ({ notifyIncomingBets }) => {
   }, [data]);
 
   return (
-    <tbody style={{ width: "100%", overflowY: "auto" }}>
-      {data?.data?.data.bets.map((x, index) => (
-        <tr
-          key={index}
-          style={{
-            padding: "5px",
-            marginTop:'10px'
-          }}
-          className={getRowClassName(x.multiplier)}
-        >
-          <td align="center">{timeFormat(x.time)}</td>
-          <td align="center">{x.amount}</td>
-          <td align="center">
-            <Box
-              sx={(theme) => ({
-                padding: "0px 5px",
-                backgroundColor: theme.colors.blue800[0],
-                borderRadius: "15px",
-                color: theme.colors.rose[0],
-                fontWeight:'bold'
-              })}
-            >
-              {x.multiplier.toFixed(2)}x
-            </Box>
-          </td>
-          <td align="center">
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "end",
-                justifyContent: "end",
-                gap: "5px",
-              }}
-            >
-              <span>{formatToTwoDecimals(x.amount * x.multiplier)}</span>
-              <GppGoodOutlinedIcon sx={(theme) => ({ color: theme.colors.green[0] })} />
-              <ChatBubbleOutlineIcon />
-            </Box>
-          </td>
-        </tr>
-      ))}
-    </tbody>
+    <Box style={{ width: "100%" }}>
+    {data?.data?.data?.bets.map((x, index) => (
+      <Box
+        key={index}
+        style={{
+          padding: "5px 15px",
+          marginTop: "10px",
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-around",
+          borderRadius: "15px",
+        }}
+        className={getRowClassName(x.multiplier)}
+      >
+        <Box style={{ flex: 1, display: "flex", justifyContent: "start" }}>
+          {timeFormat(x.time)}
+        </Box>
+        <Box style={{ flex: 1, display: "flex", justifyContent: "start" }}>
+          {x.amount.toFixed(2)}
+        </Box>
+
+        <Box style={{ flex: 1, display: "flex", justifyContent: "start" }}>
+          <Box
+            sx={(theme) => ({
+              padding: "0px 10px",
+              backgroundColor: theme.colors.blue800[0],
+              borderRadius: "15px",
+              color: theme.colors.rose[0],
+              fontWeight: "bold",
+            })}
+          >
+            {x.multiplier.toFixed(2)}x
+          </Box>
+        </Box>
+        <Box style={{ flex: 1, display: "flex", justifyContent: "end" }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "end",
+              justifyContent: "end",
+              gap: "5px",
+            }}
+          >
+            <span>{formatToTwoDecimals(x.amount * x.multiplier)}</span>
+            <GppGoodOutlinedIcon
+              sx={(theme) => ({ color: theme.colors.green[0] })}
+            />
+            <ChatBubbleOutlineIcon />
+          </Box>
+        </Box>
+      </Box>
+    ))}
+  </Box>
   );
 };

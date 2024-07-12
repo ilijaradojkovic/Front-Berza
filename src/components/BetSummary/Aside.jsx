@@ -223,28 +223,32 @@ const Aside = ({ isLandScape, bets, currentUser }) => {
               
               })}
             >
-              <thead
+              <Box
                 style={{
                   position: "sticky",
                   top: 0,
                   zIndex: 1,
                 }}
               >
-                <tr style={{ borderBottom: "solid 1px black" }}>
+                <Box style={{ borderBottom: "solid 1px black" ,display:'flex',justifyContent:'space-around'}}>
                   {" "}
                   {tableHeaders.map((header) => (
-                    <th
+                    <Box 
                       key={header}
                       style={{
+                        padding: "5px 5px",
                         border: "none !important",
                         textAlign: "center",
+                        display:'flex',
+                        justifyContent:'start',
+                        flex:'1'
                       }}
                     >
                       {header}
-                    </th>
+                    </Box>
                   ))}
-                </tr>
-              </thead>
+                </Box>
+              </Box>
               {activeButton === 0 ? (
                 <AllBets notifyIncomingBets={notifyIncomingBets} />
               ) : activeButton === 1 ? (

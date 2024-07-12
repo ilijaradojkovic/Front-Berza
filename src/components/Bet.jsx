@@ -56,7 +56,7 @@ const Bet = ({
   const [client, setClient] = useState();
   const [bet, setBet] = useState();
   const [isAutoCashOutDone, setIsAutoCashOutDone] = useState(false);
-const [activeButton,setActiveButton]=useState(0)
+  const [activeButton, setActiveButton] = useState(0);
   useEffect(() => {
     if (
       bet &&
@@ -280,25 +280,35 @@ const [activeButton,setActiveButton]=useState(0)
     }
   };
 
-  const getBorderValues=(index)=>{
-    switch(index){
-      case 0 :{ return '15px 0px 0px 15px'}
-      case 1 :{ return '0px 0px 0px 0px'}
-      case 2 :{ return '0px 0px 0px 0px'}
-      case 3 :{ return '0px 15px 15px 0px'}
-      default:{return '0px'}
+  const getBorderValues = (index) => {
+    switch (index) {
+      case 0: {
+        return "15px 0px 0px 15px";
+      }
+      case 1: {
+        return "0px 0px 0px 0px";
+      }
+      case 2: {
+        return "0px 0px 0px 0px";
+      }
+      case 3: {
+        return "0px 15px 15px 0px";
+      }
+      default: {
+        return "0px";
+      }
     }
-  }
-  const handleBetAmountChanged=(amount)=>{
-    setBetAmount(amount)
-  }
-  const handleSubtractAmount=()=>{
-    setBetAmount(betAmount-betOptionMoney)
-  }
-  const handleAddAmount=()=>{
-    console.log(betAmount+betOptionMoney)
-    setBetAmount(betAmount+betOptionMoney)
-  }
+  };
+  const handleBetAmountChanged = (amount) => {
+    setBetAmount(amount);
+  };
+  const handleSubtractAmount = () => {
+    setBetAmount(betAmount - betOptionMoney);
+  };
+  const handleAddAmount = () => {
+    console.log(betAmount + betOptionMoney);
+    setBetAmount(betAmount + betOptionMoney);
+  };
   //This method sets text in BET button, and depends on state of game and state of bet
   const getButtonText = () => {
     if (isWaitingState(gameState)) {
@@ -316,128 +326,164 @@ const [activeButton,setActiveButton]=useState(0)
 
   return (
     <Box
-        sx={(theme) => ({
-          backgroundColor: theme.colors.blue600[0],
-          width: '100%',
-          padding: '15px',
-          color: 'white',
-          fontWeight: 'bold',
-          borderRadius: '15px',
-        })}
+      sx={(theme) => ({
+        backgroundColor: theme.colors.blue600[0],
+        width: "100%",
+        padding: "15px",
+        color: "white",
+        fontWeight: "bold",
+        borderRadius: "15px",
+      })}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          marginBottom: "20px",
+        }}
+      >
+        <Button
+          onClick={() => setActiveButton(0)}
+          variant="transparent"
+          sx={(theme) => ({
+            borderRadius: "15px 0px 0px 15px",
+            backgroundColor: theme.colors.blue800[0],
+            color:
+              activeButton === 0
+                ? theme.colors.yellow[0]
+                : theme.colors.white[0],
+            width: "100%",
+          })}
+        >
+          Bet
+        </Button>
+        <Button
+          onClick={() => setActiveButton(1)}
+          variant="transparent"
+          sx={(theme) => ({
+            borderRadius: "0px 15px 15px 0px",
+            backgroundColor: theme.colors.blue800[0],
+            color:
+              activeButton === 1
+                ? theme.colors.yellow[0]
+                : theme.colors.white[0],
+            width: "100%",
+          })}
+        >
+          Auto
+        </Button>
+      </Box>
+
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "stretch",
+          alignItems: "stretch",
+          gap: "1rem",
+        }}
       >
         <Box
           sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginBottom: '20px',
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            gap: "0.3rem",
+            width: "100%",
+            opacity: !gameOver || bet ? 0.6 : 1,
+            transition: "all 0.5s",
+            "*": {
+              cursor: "pointer",
+            },
           }}
         >
-          <Button
-            onClick={() => setActiveButton(0)}
-            variant="transparent"
+          <BetInput
+            betAmount={betAmount}
+            handleBetAmountChanged={handleBetAmountChanged}
+            subtractAmount={handleSubtractAmount}
+            addAmount={handleAddAmount}
+          />
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: "5px",
+            }}
+          >
+            {optionsMoneyToBet.map((option, index) => (
+              <Button
+                key={option}
+                sx={(theme) => ({
+                  borderRadius: getBorderValues(index),
+                  color: theme.colors.white[0],
+                  width: "100%",
+                  background: theme.colors.blue800[0],
+                  whiteSpace: "nowrap",
+                  border: ` solid 1px ${
+                    option === betOptionMoney
+                      ? theme.colors.yellow[0]
+                      : "transparent"
+                  }`,
+                })}
+                onClick={() => {
+                  setBetOptionMoney(option);
+                }}
+              >
+                {option} {currentUser?.casinoCurrency}
+              </Button>
+            ))}
+          </Box>
+          <Text
             sx={(theme) => ({
-              borderRadius: '15px 0px 0px 15px',
-              backgroundColor: theme.colors.blue800[0],
-              color: activeButton === 0 ? theme.colors.yellow[0] : theme.colors.white[0],
-              width: '100%',
+              fontWeight: "normal",
+              color: theme.colors.white[0],
             })}
           >
-            Bet
-          </Button>
-          <Button
-            onClick={() => setActiveButton(1)}
-            variant="transparent"
-            sx={(theme) => ({
-              borderRadius: '0px 15px 15px 0px',
-              backgroundColor: theme.colors.blue800[0],
-              color: activeButton === 1 ? theme.colors.yellow[0] : theme.colors.white[0],
-              width: '100%',
-            })}
-          >
-            Auto
-          </Button>
+            Auto Cashout
+          </Text>
+          <AutocashoutBetInput />
         </Box>
-
         <Box
           sx={{
-            width: '100%',
-            display: 'flex',
-            justifyContent: 'stretch',
-            alignItems: 'stretch',
-            gap: '1rem',
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "stretch",
+            width: "100%",
           }}
         >
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              gap: '0.3rem',
-              width: '100%',
-              opacity: !gameOver || bet ? 0.6 : 1,
-              transition: 'all 0.5s',
-              '*': {
-                cursor: 'pointer',
-              },
-            }}
-          >
-            <BetInput
-              betAmount={betAmount} 
-              handleBetAmountChanged={handleBetAmountChanged} 
-              subtractAmount={handleSubtractAmount}
-              addAmount={handleAddAmount}
-              />
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                gap: '5px',
-              }}
-            >
-              {optionsMoneyToBet.map((option, index) => (
-                <Button
-                  key={option}
-                  sx={(theme) => ({
-                    borderRadius: getBorderValues(index),
-                    color: theme.colors.white[0],
-                    width: '100%',
-                    background: theme.colors.blue800[0],
-                    whiteSpace: 'nowrap',
-                    border:` solid 1px ${option===betOptionMoney? theme.colors.yellow[0]: 'transparent'}`,
-                  })}
-                  onClick={() => {
-                    setBetOptionMoney(option);
-                  }}
-                >
-                  {option} {currentUser?.casinoCurrency}
-                </Button>
-              ))}
-            </Box>
-            <Text
-              sx={(theme) => ({
-                fontWeight: 'normal',
-                color: theme.colors.white[0],
-              })}
-            >
-              Auto Cashout
-            </Text>
-            <AutocashoutBetInput />
-          </Box>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'stretch',
-              width: '100%',
-            }}
-          >
-            <Button
-              disabled={
-                (!bet && isStartedState(gameState)) || gameOver || isAutoCashOutDone
-              }
-              sx={(theme) => ({
+          <Button
+            disabled={
+              (!bet && isStartedState(gameState)) ||
+              gameOver ||
+              isAutoCashOutDone
+            }
+            sx={(theme) => ({
+              background:
+                (!bet && isStartedState(gameState)) ||
+                gameOver ||
+                isAutoCashOutDone
+                  ? grayColor
+                  : isWaitingState(gameState) && bet
+                  ? redColor
+                  : !isGoingDown
+                  ? `linear-gradient(180deg, ${theme.colors.green[0]}, ${theme.colors.green[1]})`
+                  : redColor,
+              boxShadow: "inset 0px -4px -4px 10px rgba(0, 0, 0, 0.25)",
+              transition: "background-color 0.5s",
+              width: "100%",
+              height: "100%",
+              fontSize: "2.5rem",
+              borderRadius: "15px",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              border: "none",
+              outline: "none",
+              filter: "drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))",
+              "&:hover": {
                 background:
                   (!bet && isStartedState(gameState)) ||
                   gameOver ||
@@ -448,39 +494,27 @@ const [activeButton,setActiveButton]=useState(0)
                     : !isGoingDown
                     ? `linear-gradient(180deg, ${theme.colors.green[0]}, ${theme.colors.green[1]})`
                     : redColor,
-                boxShadow: 'inset 0px -4px -4px 10px rgba(0, 0, 0, 0.25)',
-                transition: 'background-color 0.5s',
-                width: '100%',
-                height: '100%',
-                fontSize: '2.5rem',
-                borderRadius: '15px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                border: 'none',
-                outline: 'none',
-                filter: 'drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))',
-              })}
-              onClick={handleBet}
+              },
+            })}
+            onClick={handleBet}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
             >
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-              >
-                <div>{getButtonText()}</div>
-                <p style={{ fontSize: '15px', margin: 0 }}>
-                  {!isWaitingState(gameState) && bet && isGoingDown && '50%'}
-                </p>
-              </Box>
-            </Button>
-          </Box>
+              <div>{getButtonText()}</div>
+              <p style={{ fontSize: "15px", margin: 0 }}>
+                {!isWaitingState(gameState) && bet && isGoingDown && "50%"}
+              </p>
+            </Box>
+          </Button>
         </Box>
       </Box>
+    </Box>
   );
 };
 
