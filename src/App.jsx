@@ -5,7 +5,7 @@ import Aside from "./components/BetSummary/Aside";
 import { MantineProvider } from "@mantine/core";
 import Navbar from "./components/Navbar";
 import { useViewportSize } from "@mantine/hooks";
-import RechartsChart2 from "./components/RechartsChart2";
+import MiddleSection from "./components/MiddleSection";
 import { useMutation, useQuery } from "react-query";
 import { Notifications } from "@mantine/notifications";
 import { Chat } from "./components/chat/Chat";
@@ -83,7 +83,7 @@ function App() {
   useEffect(() => {
     refetchCasinoConfiguration()
     const messageHandler = (event) => {
-      if (event.origin !== 'http://localhost:5173') { // Replace with the origin of the parent window
+      if (event.origin !== 'http://localhost:5174') { // Replace with the origin of the parent window
         return;
       }
 
@@ -197,28 +197,17 @@ function App() {
     <MantineProvider
       theme={{
         colors: {
-          "ocean-blue": [
-            "#01EFB7",
-            "#01EFB7",
-            "#01EFB7",
-            "#01EFB7",
-            "#01EFB7",
-            "#01EFB7",
-            "#01EFB7",
-          ],
-          "bright-pink": [
-            "#F0BBDD",
-            "#ED9BCF",
-            "#EC7CC3",
-            "#ED5DB8",
-            "#F13EAF",
-            "#F71FA7",
-            "#FF00A1",
-            "#E00890",
-            "#C50E82",
-            "#AD1374",
-          ],
-          "purple-border": ["#3F347D"],
+          "blue800": ["#12151E"],
+          'blue700':['#1A1F2D'],
+          'blue600': ['#212738'],
+          'blue500':['#2A3146'],
+          'gray':['#4B556D','#A2A8B7'],
+          'white':['#EBEDF2','#A2A8B7'],
+          'yellow':['#FFCB04'],
+          'green':['#00FC83','#008563','#00FFB2','#00FFB2'],
+          'black':['#000000'],
+          'rose':['#B960FF'],
+          'purple':['#685AB0']
         },
       }}
     >
@@ -228,11 +217,9 @@ function App() {
         src="/src/assets/sounds/backgoundMusic.mp3"
         loop
       />
-      <Box style={{display:'flex',flexDirection:'column',height:'100vh'}}>
+      <Box sx={theme=>({display:'flex',flexDirection:'column',height:'100vh',backgroundColor: theme.colors.blue800[0]})} >
         <Box
-          style={{
-            padding: "1rem",
-          }}
+      
         >
           <Navbar
             isLandScape={isLandScape}
@@ -249,17 +236,7 @@ function App() {
             handleImageChange={(index)=>handleImageChange(index)}
           />
         </Box>
-        <Box
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            height: isLandScape ? window.innerHeight : "auto",
-            padding:'1rem',
-            width: window.innerWidth,
-            overflow: "hidden",
-            flex: 1
-          }}
-        >
+
           <Box
             style={{
               display: "flex",
@@ -277,14 +254,10 @@ function App() {
             </Box>
             <Box
               style={{
-                display: "flex",
-                flexDirection: "column",
-                paddingLeft: "20px",
-                paddingRight: "20px",
-                width: "65%",
+                width: "60%",
               }}
             >
-              <RechartsChart2
+              <MiddleSection
                 isLandScape={isLandScape}
                 bets={bets}
                 setBets={setBets}
@@ -297,11 +270,11 @@ function App() {
                 casinoConfigurationData={casinoConfigurationData}
               />
             </Box>
-            <Box style={{ width: "15%", maxHeight: "100%" }}>
+            <Box style={{ width: "20%"}}>
               <Chat currentUser={currentUser} />
             </Box>
           </Box>
-        </Box>
+     
       </Box>
     
     </MantineProvider>

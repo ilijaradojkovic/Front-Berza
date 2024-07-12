@@ -1,7 +1,11 @@
 .row-highlight{
 
-    background-color: #00856399;
+    background-color: #00FFB2;
+    border:1px solid #00FF66;
 }
 .row-normal{
+    background-color: #1A1F2D;
+    border-radius: "10px" !important;
+    margin-top: 10px !important;
 
 }

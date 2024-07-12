@@ -24,8 +24,8 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import History from "./History";
-import Footer from "./Footer";
+import History from "./History/History";
+import Bets from "./Bets";
 import myLottieAnimation from "../assets/lottie/animation4.json";
 import Lottie, { useLottieInteractivity } from "lottie-react";
 import lottie from "lottie-web";
@@ -152,7 +152,7 @@ import { useMutation } from "react-query";
 //   );
 // };
 
-const RechartsChart2 = ({
+const MiddleSection = ({
   isLandScape,
   setBalance,
   balance,
@@ -164,13 +164,12 @@ const RechartsChart2 = ({
   lastValue,
   currentUser,
   isAnimationOn,
-  casinoConfigurationData
+  casinoConfigurationData,
 }) => {
-
   const updateUserBalanceMutation = useMutation(() => updateUserBalance(), {
     onSuccess: (response) => {
       if (response.data) {
-       console.log(response.data)
+        console.log(response.data);
         // getUser(); // Call the refetch method to get user data
       }
     },
@@ -205,7 +204,7 @@ const RechartsChart2 = ({
   const [prevPoint, setPrevPoint] = useState(1);
 
   const [segments, setSegments] = useState([]);
-  const [isGoingDown,setIsGodingDown]=useState(false)
+  const [isGoingDown, setIsGodingDown] = useState(false);
 
   useEffect(() => {
     console.log(gameState);
@@ -220,7 +219,7 @@ const RechartsChart2 = ({
       setIsPlaying(true);
     } else if (isFinishedState(gameState)) {
       setGameOver(true);
-      updateUserBalanceMutation.mutate()
+      updateUserBalanceMutation.mutate();
     }
   }, [gameState]);
 
@@ -233,11 +232,11 @@ const RechartsChart2 = ({
     let currentSegment = { data: [data[0]], color: greenColor };
     for (let i = 1; i < data.length; i++) {
       const prevPoint = data[i - 1];
-      
+
       const currPoint = data[i];
-    
+
       const color = currPoint.y >= prevPoint.y ? greenColor : redColor;
-      setIsGodingDown(! (currPoint.y >= prevPoint.y))
+      setIsGodingDown(!(currPoint.y >= prevPoint.y));
       if (color === currentSegment.color) {
         currentSegment.data.push(currPoint);
       } else {
@@ -250,10 +249,10 @@ const RechartsChart2 = ({
   };
 
   useEffect(() => {
-    connectToGamePoints(handlePayload)
+    connectToGamePoints(handlePayload);
   }, []);
 
-  const handlePayload=(payload)=>{
+  const handlePayload = (payload) => {
     setCurrentMultiplier(payload.y);
     setChartData((prevChart) => {
       const newChart = [...prevChart, payload];
@@ -261,7 +260,7 @@ const RechartsChart2 = ({
       setSegments(newSegments);
       return newChart;
     });
-  }
+  };
   const bgMoving = keyframes({
     "0%": {
       backgroundPositionX: `0%`,
@@ -285,33 +284,32 @@ const RechartsChart2 = ({
         flexDirection: "column",
         gap: "1rem",
         position: "relative",
-        height:'100%',
+        height: "100%",
+        padding: "15px 0px",
       }}
     >
       <History gameState={gameState} />
 
       <Box
-        style={{
-          backgroundImage: `url(${graphbg})`,
+        sx={theme=>({
           backgroundSize: " 50% auto",
           backgroundPositionX: `0%`,
           backgroundPositionY: `0%`,
           backgroundAttachment: "fixed",
           transition: "all 0.1s",
           backgroundRepeat: "repeat",
-          width:  "100%",
+          border:`solid 1px white`,
+          width: "100%",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          padding: isLandScape ? "2.7rem" : "1rem",
-          borderRadius: "0.5rem",
-          boxShadow: "0 0 1rem rgba(0,0,0,0.2)",
+          borderRadius: "15px",
           animation: `${bgMoving} 4s linear infinite`,
           animationPlayState: isBackgroundPlaying ? "running" : "paused",
           position: "relative",
-          flex:1
-        }}
+          flex: 1,
+        })}
       >
         {(isWaitingState(gameState) || isFinishedState(gameState)) && (
           <Box
@@ -330,39 +328,41 @@ const RechartsChart2 = ({
           style={{
             position: "relative",
             overflow: "visible !important",
+            height:'100%',
+            width:'100%',
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
           }}
-          width={isLandScape ? width / 1.4 : width / 1.1}
-          height={isLandScape ? height / 2.27 : height / 3.5}
+     
         >
-          
-            <LineChart
-              width={isLandScape ? width / 1.4 : width / 1.1}
-              height={isLandScape ? height / 2.27 : height / 3.5}
-              data={chartData}
-              margin={{
-                top: 5,
-                right: isLandScape ? 30 : 20,
-                left: isLandScape ? 20 : 0,
-                bottom: isLandScape ? 5 : 0,
-              }}
-              style={{
-                overflow: "visible !important",
-                width:'100%',
-                height:'100%'
-              }}
-            >
-              <defs>
-                <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#008563" stopOpacity={1} />
-                  <stop offset="95%" stopColor="#FF003c" stopOpacity={1} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="x" type="number" domain={[0, 80]} />
-              <YAxis
-                domain={[0, maxY + 1]}
-                tickFormatter={(value) => value.toFixed(1)}
-              />
-            {isAnimationOn &&   segments.map((segment, index) => (
+          <LineChart
+        
+            data={chartData}
+            width={width}
+            height={height}
+            style={{
+              overflow: "visible !important",
+              width: "100%",
+              height: "100%",
+            
+             
+            }}
+          >
+            <defs>
+              <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#008563" stopOpacity={1} />
+                <stop offset="95%" stopColor="#FF003c" stopOpacity={1} />
+              </linearGradient>
+            </defs>
+            <XAxis dataKey="x" type="number" domain={[0, 80]} />
+            <YAxis
+              domain={[0, maxY + 1]}
+              tickFormatter={(value) => value.toFixed(1)}
+            />
+            {isAnimationOn &&
+              segments.map((segment, index) => (
                 <Line
                   key={index}
                   type="monotone"
@@ -375,72 +375,10 @@ const RechartsChart2 = ({
                   animationDuration={100}
                   animationEasing="ease-out"
                 />
-              ))
-              }
-            </LineChart>
-          )
-          {/* //Konfete animacija,kad predje odredjeni broj  */}
-          {/* <Box
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: `translate(-50%, -50%)`,
-              opacity: gameOver ? 1 : 0,
-            }}
-          >
-            <Lottie animationData={confetti} lottieRef={confettiRef} />
-          </Box> */}
+              ))}
+          </LineChart>
 
-          {/* //Animacija za pare */}
-          {/* <Box
-            style={{
-             
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: `translate(-50%, -50%)`,
-              width: `min(80%, 500px)`,
-              opacity: playMoney ? 1 : 0,
-              transition: playMoney ? "all 0.1s" : "all 4s",
-            }}
-          >
-            <Lottie
-              animationData={money}
-              lottieRef={moneyRef}
-              loop={false}
-              onComplete={() => {
-                setPlayMoney(false);
-              }}
-            />
-          </Box> */}
-          {/* //oin anikmation za pare  levi bet*/}
-          {/* <Box
-            style={{
-              position: "absolute",
-              bottom: "0%",
-              left: "36%",
-              transform: `translate(-50%, 50%)`,
-              width: "200px",
-                opacity: gameOver ? 1 : 0,
-            }}
-          >
-            <Lottie animationData={coins} lottieRef={coinsRef} loop={false} />
-          </Box> */}
-
-          {/* Coin anikmation  za desni bet */}
-          {/* <Box
-            style={{
-              position: "absolute",
-              bottom: "0%",
-              left: "88%",
-              transform: `translate(-50%, 50%)`,
-              width: "200px",
-                opacity: gameOver ? 1 : 0,
-            }}
-          >
-            <Lottie animationData={coins} lottieRef={coins2Ref} loop={false} />
-          </Box> */}
+      
           <Box
             style={{
               position: "absolute",
@@ -472,86 +410,9 @@ const RechartsChart2 = ({
             )}
           </Box>
         </Box>
-        {isLandScape && (
-          <Box
-            style={{
-              display: "flex",
-              width: "100%",
-              justifyContent: "stretch",
-              alignItems: "center",
-              color: "white",
-            }}
-          >
-            <Box
-              style={{
-                width: "100%",
-                textAlign: "center",
-                backgroundImage:
-                  "linear-gradient(136deg, #2C264A 0%, #4A407D 100%)",
-                padding: "10px",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: "0.5rem",
-              }}
-            >
-              <img
-                src={bitcoin}
-                alt="vite logo"
-                style={{
-                  width: "1.5rem",
-                }}
-              />
-              INVESTORY {thousandSeparator(investory)}
-            </Box>
-            <Box
-              style={{
-                width: "100%",
-                textAlign: "center",
-                backgroundImage:
-                  "linear-gradient(136deg, #2C264A 0%, #4A407D 100%)",
-                padding: "10px",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: "0.5rem",
-              }}
-            >
-              <img
-                src={growth}
-                alt="vite logo"
-                style={{
-                  width: "1.5rem",
-                }}
-              />
-              {/* WINS {thousandSeparator(wins)} */}
-            </Box>
-            <Box
-              style={{
-                width: "100%",
-                textAlign: "center",
-                backgroundImage:
-                  "linear-gradient(136deg, #2C264A 0%, #4A407D 100%)",
-                padding: "10px",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: "0.5rem",
-              }}
-            >
-              <img
-                src={fall}
-                alt="vite logo"
-                style={{
-                  width: "1.5rem",
-                }}
-              />
-              LOSES {thousandSeparator(loses)}
-            </Box>
-          </Box>
-        )}
+
       </Box>
-      <Footer
+      <Bets
         isLandScape={isLandScape}
         gameOver={gameOver}
         setBalance={setBalance}
@@ -580,4 +441,4 @@ const RechartsChart2 = ({
   );
 };
 
-export default RechartsChart2;
+export default MiddleSection;

@@ -16,13 +16,13 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery } from "react-query";
 import { connectToChat } from "../../communication/socket";
 import { sendMessage } from "../../communication/rest";
-
-export const Chat = ({currentUser}) => {
+import SendIcon from "@mui/icons-material/Send";
+export const Chat = ({ currentUser }) => {
   // const {data: messages, refetch } = useQuery(["messages"], () =>
   //   getMessages(page, size)
   // );
   const [messages, setMessages] = useState([]);
-  const [messageValue, setMessageValue] = useState('');
+  const [messageValue, setMessageValue] = useState("");
   const messagesEndRef = useRef(null);
 
   const [opened, { toggle, close }] = useDisclosure(false);
@@ -59,14 +59,14 @@ export const Chat = ({currentUser}) => {
   };
 
   const handleSendMessage = () => {
-    if(messageValue.length===0) return
+    if (messageValue.length === 0) return;
     sendMessage({
       username: currentUser.username,
       message: messageValue,
       imageIndex: currentUser?.preferences.imageIndex,
       chatMessageType: "DEFAULT",
     });
-    setMessageValue('');
+    setMessageValue("");
   };
 
   useEffect(() => {
@@ -74,7 +74,6 @@ export const Chat = ({currentUser}) => {
   }, []);
 
   const handlePayload = (payload) => {
-
     setMessages((oldMessages) => {
       const newMessages = [...oldMessages, payload];
       return newMessages;
@@ -85,252 +84,273 @@ export const Chat = ({currentUser}) => {
     setMessageValue(event.target.value);
   };
 
- 
-
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-return (
+  return (
     <Box
-      style={{
-        display: "flex",
+      sx={(theme) => ({
         height: "100%",
-        flexDirection: "column",
-        backgroundColor: purpleLight,
-   
-      }}
+        padding: "15px",
+      })}
     >
       <Box
-        style={{
-          flex: 1,
+        sx={(theme) => ({
           display: "flex",
           flexDirection: "column",
-          overflowY: "auto", // Enable vertical scrolling
-          scrollbarWidth: "none", // Firefox scrollbar hide
-          msOverflowStyle: "none", // IE/Edge scrollbar hide
-          "&::WebkitScrollbar": {
-            display: "none", // Webkit scrollbar hide
-          },
-        }}
+          height: "100%",
+          backgroundColor: theme.colors.blue600[0],
+          borderRadius: "15px",
+        })}
       >
-        {messages?.map((msg, index) => (
-          <Message key={index} message={msg} />
-        ))}
-        <div ref={messagesEndRef} /> {/* Empty div to control scroll position */}
-      </Box>
-            {opened && (
         <Box
           style={{
-            padding: "0px 10px",
-            height: "350px",
+            flex: 1,
             display: "flex",
             flexDirection: "column",
+            overflowY: "auto", // Enable vertical scrolling
+            scrollbarWidth: "none", // Firefox scrollbar hide
+            msOverflowStyle: "none", // IE/Edge scrollbar hide
+            "&::WebkitScrollbar": {
+              display: "none", // Webkit scrollbar hide
+            },
           }}
         >
           <Box
-            style={{
+            sx={(theme) => ({
               display: "flex",
-              justifyContent: "space-between",
-              padding: "10px",
-              color: "white",
-              borderRadius: "5px 5px 0px 0px",
-              backgroundColor: lightGrayColor,
-            }}
+              justifyContent: "start",
+              alignItems: "center",
+              backgroundColor: theme.colors.blue800[0],
+              padding: "5px 10px",
+              color: theme.colors.white[0],
+              gap:'10px'
+            })}
           >
-            <p>RAIN</p>
-            <CloseButton
-              onClick={close}
-              sx={(theme) => ({
-                color: "white",
-                "&:hover": {
-                  backgroundColor: theme.colors.gray[7],
-                },
+            <Box
+              sx={theme=>({
+                width: "15px",
+                height: "15px",
+                borderRadius: "50%",
+                backgroundColor: theme.colors.green[0], // Green color
               })}
             />
+            Online chat (50)
           </Box>
+          {messages?.map((msg, index) => (
+            <Message key={index} message={msg} />
+          ))}
+          <div ref={messagesEndRef} />{" "}
+          {/* Empty div to control scroll position */}
+        </Box>
+        {opened && (
           <Box
             style={{
-              position: "relative !important",
-              backgroundColor: darkGrayColor,
-              padding: "1rem",
+              padding: "0px 10px",
+              height: "350px",
               display: "flex",
               flexDirection: "column",
-              gap: "5px",
-              flex: "1",
-              color: "white",
             }}
           >
-            <p style={{ fontSize: "0.8rem", opacity: "0.7" }}>
-              This feature will give selected amount to random users in chat.
-            </p>
             <Box
               style={{
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                justifyContent: "space-between",
+                padding: "10px",
                 color: "white",
-                flexDirection: "column",
-                marginTop: "15px",
+                borderRadius: "5px 5px 0px 0px",
+                backgroundColor: lightGrayColor,
               }}
             >
-              <label
-                style={{
-                  color: "black",
-                  width: "100%",
-                  fontSize: "0.8rem",
+              <p>RAIN</p>
+              <CloseButton
+                onClick={close}
+                sx={(theme) => ({
                   color: "white",
-                }}
-              >
-                Amount per player, RSD
-              </label>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: blackColor,
-                  borderRadius: "13px",
-                  padding: "6px",
-                }}
-              >
-                <RemoveCircleOutlineIcon
-                  style={{ cursor: "pointer" }}
-                  onClick={handleSubtractAmountPerPlayer}
-                />
-                <input
-                  style={{
-                    margin: "0px",
-                    padding: "0px",
-                    border: "none",
-                    backgroundColor: "transparent",
-                    outline: "none",
-                    textAlign: "center",
-                    color: "white",
-                  }}
-                  value={amountPerPlayerRain}
-                  onChange={handleAmountPerPlayerChanged}
-                />
-                <AddCircleOutlineIcon
-                  style={{ cursor: "pointer" }}
-                  onClick={handleAddAmountPerPlayer}
-                />
-              </div>
+                  "&:hover": {
+                    backgroundColor: theme.colors.gray[7],
+                  },
+                })}
+              />
             </Box>
             <Box
               style={{
+                position: "relative !important",
+                backgroundColor: darkGrayColor,
+                padding: "1rem",
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
                 flexDirection: "column",
+                gap: "5px",
+                flex: "1",
+                color: "white",
               }}
             >
-              <label
-                style={{
-                  color: "black",
-                  width: "100%",
-                  fontSize: "0.8rem",
-                  color: "white",
-                }}
-              >
-                Number of players
-              </label>
-              <div
+              <p style={{ fontSize: "0.8rem", opacity: "0.7" }}>
+                This feature will give selected amount to random users in chat.
+              </p>
+              <Box
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  backgroundColor: blackColor,
-                  borderRadius: "13px",
-                  padding: "6px",
+                  color: "white",
+                  flexDirection: "column",
+                  marginTop: "15px",
                 }}
               >
-                <RemoveCircleOutlineIcon
-                  style={{ cursor: "pointer" }}
-                  onClick={handleSubtractNumberOfPlayers}
-                />
-                <input
+                <label
                   style={{
-                    margin: "0px",
-                    padding: "0px",
-                    border: "none",
-                    backgroundColor: "transparent",
-                    outline: "none",
-                    textAlign: "center",
+                    color: "black",
+                    width: "100%",
+                    fontSize: "0.8rem",
                     color: "white",
                   }}
-                  value={numberOfPlayersRain}
-                  onChange={handleNumberOfPlayersChanged}
-                />
+                >
+                  Amount per player, RSD
+                </label>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: blackColor,
+                    borderRadius: "13px",
+                    padding: "6px",
+                  }}
+                >
+                  <RemoveCircleOutlineIcon
+                    style={{ cursor: "pointer" }}
+                    onClick={handleSubtractAmountPerPlayer}
+                  />
+                  <input
+                    style={{
+                      margin: "0px",
+                      padding: "0px",
+                      border: "none",
+                      backgroundColor: "transparent",
+                      outline: "none",
+                      textAlign: "center",
+                      color: "white",
+                    }}
+                    value={amountPerPlayerRain}
+                    onChange={handleAmountPerPlayerChanged}
+                  />
+                  <AddCircleOutlineIcon
+                    style={{ cursor: "pointer" }}
+                    onClick={handleAddAmountPerPlayer}
+                  />
+                </div>
+              </Box>
+              <Box
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "white",
+                  flexDirection: "column",
+                }}
+              >
+                <label
+                  style={{
+                    color: "black",
+                    width: "100%",
+                    fontSize: "0.8rem",
+                    color: "white",
+                  }}
+                >
+                  Number of players
+                </label>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: blackColor,
+                    borderRadius: "13px",
+                    padding: "6px",
+                  }}
+                >
+                  <RemoveCircleOutlineIcon
+                    style={{ cursor: "pointer" }}
+                    onClick={handleSubtractNumberOfPlayers}
+                  />
+                  <input
+                    style={{
+                      margin: "0px",
+                      padding: "0px",
+                      border: "none",
+                      backgroundColor: "transparent",
+                      outline: "none",
+                      textAlign: "center",
+                      color: "white",
+                    }}
+                    value={numberOfPlayersRain}
+                    onChange={handleNumberOfPlayersChanged}
+                  />
 
-                <AddCircleOutlineIcon
-                  style={{ cursor: "pointer" }}
-                  onClick={handleAddNumberOfPlayers}
-                />
-              </div>
-            </Box>
-            <Box
-              style={{
-                textAlign: "center",
-                fontSize: "1.3rem",
-              }}
-            >
-              <p>Total, RSD</p>
-              <p>{(amountPerPlayerRain * numberOfPlayersRain).toFixed(2)}</p>
-            </Box>
-            <Box
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <Button style={{ backgroundColor: purpleLight }}>
-                RAIN {(amountPerPlayerRain * numberOfPlayersRain).toFixed(2)}{" "}
-                RSD
-              </Button>
+                  <AddCircleOutlineIcon
+                    style={{ cursor: "pointer" }}
+                    onClick={handleAddNumberOfPlayers}
+                  />
+                </div>
+              </Box>
+              <Box
+                style={{
+                  textAlign: "center",
+                  fontSize: "1.3rem",
+                }}
+              >
+                <p>Total, RSD</p>
+                <p>{(amountPerPlayerRain * numberOfPlayersRain).toFixed(2)}</p>
+              </Box>
+              <Box
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Button style={{ backgroundColor: purpleLight }}>
+                  RAIN {(amountPerPlayerRain * numberOfPlayersRain).toFixed(2)}{" "}
+                  RSD
+                </Button>
+              </Box>
             </Box>
           </Box>
-        </Box>
-      )}
-      <Box style={{ display: "flex", borderTop: "solid 1px black" }}>
-        <input
-          className="reply-input"
-          placeholder="Reply"
-          value={messageValue}
-          onChange={handleInputChange}
-        />
-        <button
-          style={{
-            border: "none",
+        )}
+
+        <Box
+          sx={(theme) => ({
+            display: "flex",
+            borderTop: "solid 1px black",
+            backgroundColor: theme.colors.blue800[0],
+            margin: "15px",
+            borderRadius: "15px",
+            alignItems: "center", // Align items vertically in the center
             padding: "10px",
-            backgroundColor: "transparent",
-            color: "white",
-            cursor: "pointer",
-          }}
-          onClick={handleSendMessage}
-          
+          })}
         >
-          SEND
-        </button>
-      </Box>
-      <Box
-        style={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "end",
-          padding: "10px",
-        }}
-      >
-         <WaterDropIcon
-          onClick={toggle}
-          style={{ color: "white", cursor: "pointer" }}
-        />
+          <input
+            className="reply-input"
+            placeholder="Reply"
+            value={messageValue}
+            onChange={handleInputChange}
+            style={{ flex: 1, marginRight: "5px" }}
+          />
+          <SendIcon
+            fontSize="small"
+            sx={(theme) => ({
+              color: theme.colors.purple[0],
+              cursor: "pointer",
+            })}
+            onClick={handleSendMessage}
+          />
+        </Box>
       </Box>
     </Box>
   );

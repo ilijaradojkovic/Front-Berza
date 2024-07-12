@@ -6,15 +6,15 @@ import { images } from "../../util/globals";
 export default function Message({ message }) {
   return (
     <Box
-      style={{
+      sx={theme=>({
         padding: "5px",
         display: "flex",
         flexDirection: "column",
-        color: "whitesmoke",
+        color: theme.colors.white[1],
         gap: "5px",
         alignItems: "center",
         justifyContent: "start",
-      }}
+      })}
     >
       <Box
         style={{

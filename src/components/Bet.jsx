@@ -14,7 +14,13 @@ import {
 } from "./util/game-state";
 import { showErrorNotification } from "./util/notificationSystem";
 import { grayColor, greenColor, redColor } from "../colors/colors";
-import { connectToCancelBet, connectToCashInBet, connectToCashOutBet } from "../communication/socket";
+import {
+  connectToCancelBet,
+  connectToCashInBet,
+  connectToCashOutBet,
+} from "../communication/socket";
+import BetInput from "./shared/BetInput";
+import AutocashoutBetInput from "./shared/AutocashoutBetInput";
 const Bet = ({
   setStart,
   isLandScape,
@@ -38,20 +44,19 @@ const Bet = ({
   currentMultiplier,
   currentUser,
   isGoingDown,
-  casinoConfigurationData
+  casinoConfigurationData,
 }) => {
   const [betAmount, setBetAmount] = useState(100);
   const [autoCashOutAmount, setAutoCashOutAmount] = useState(1.6);
   const [autoCashOut, setAutoCashOut] = useState(false);
-  const [optionsMoneyToBet,seOptionsMoneyToBet] = useState([]);
+  const [optionsMoneyToBet, seOptionsMoneyToBet] = useState([]);
   const [betOptionMoney, setBetOptionMoney] = useState();
   const [isBeting, setIsBeting] = useState(false);
   const [isSold, setIsSold] = useState(false);
   const [client, setClient] = useState();
   const [bet, setBet] = useState();
   const [isAutoCashOutDone, setIsAutoCashOutDone] = useState(false);
-
-
+const [activeButton,setActiveButton]=useState(0)
   useEffect(() => {
     if (
       bet &&
@@ -69,19 +74,21 @@ const Bet = ({
     }
   }, [gameState]);
 
-  useEffect(()=>{
-    if(!casinoConfigurationData) return
-    seOptionsMoneyToBet([casinoConfigurationData.incrementor1,casinoConfigurationData.incrementor2,casinoConfigurationData.incrementor3,casinoConfigurationData.incrementor4])
-  },[casinoConfigurationData])
+  useEffect(() => {
+    if (!casinoConfigurationData) return;
+    seOptionsMoneyToBet([
+      casinoConfigurationData.incrementor1,
+      casinoConfigurationData.incrementor2,
+      casinoConfigurationData.incrementor3,
+      casinoConfigurationData.incrementor4,
+    ]);
+  }, [casinoConfigurationData]);
 
-  useEffect(()=>{
-
-    if( optionsMoneyToBet &&  optionsMoneyToBet.length>0){
-      setBetOptionMoney(optionsMoneyToBet[0])
-
+  useEffect(() => {
+    if (optionsMoneyToBet && optionsMoneyToBet.length > 0) {
+      setBetOptionMoney(optionsMoneyToBet[0]);
     }
-  },[optionsMoneyToBet])
-
+  }, [optionsMoneyToBet]);
 
   useEffect(() => {
     if (
@@ -212,25 +219,20 @@ const Bet = ({
 
   //   },[bet]);
 
-
-    
-  const handleCashInBetPayload=(payload)=>{
-    //We get string data as response and i need to parse it to json 
+  const handleCashInBetPayload = (payload) => {
+    //We get string data as response and i need to parse it to json
     setBet(JSON.parse(payload.data));
-
-   }
-   const handleCashOutBetPayload=(payload)=>{
+  };
+  const handleCashOutBetPayload = (payload) => {
     setBet(null);
-
-   }
-   const handleCancelBetPayload=(payload)=>{
+  };
+  const handleCancelBetPayload = (payload) => {
     setBet(null);
-
-   }
+  };
 
   const placeBet = () => {
     //trebalo bi da posaljem jwt i onda u taj jwt da se decode na beku i tu da se nalazi userToken i onda sa tim umesto sa mailom da se radi
-    const userToken=localStorage.getItem('accessToken')
+    const userToken = localStorage.getItem("accessToken");
     const requestData = {
       amount: betAmount,
       multiplier: currentMultiplier,
@@ -240,14 +242,11 @@ const Bet = ({
       autoCashOutMultiplier: autoCashOutAmount,
     };
 
-   //call bet
-   connectToCashInBet(
-    handleCashInBetPayload,
-    requestData
-   )
-  }
+    //call bet
+    connectToCashInBet(handleCashInBetPayload, requestData);
+  };
   const placeSell = () => {
-    const userToken=localStorage.getItem('accessToken')
+    const userToken = localStorage.getItem("accessToken");
 
     const requestData = {
       amount: betAmount,
@@ -255,30 +254,22 @@ const Bet = ({
       jwt: userToken,
       betType: "CASHOUT",
       betId: bet.id,
-      isGoingDown:isGoingDown
-
+      isGoingDown: isGoingDown,
     };
-    
-    connectToCashOutBet(handleCashOutBetPayload,requestData)
 
-
-  }
+    connectToCashOutBet(handleCashOutBetPayload, requestData);
+  };
 
   const placeCancel = () => {
-    const userToken=localStorage.getItem('accessToken')
+    const userToken = localStorage.getItem("accessToken");
     const requestDataCancel = {
       betType: "CANCEL",
       betId: bet.id,
-      jwt: userToken
+      jwt: userToken,
     };
 
-    connectToCancelBet(
-      handleCancelBetPayload,
-      requestDataCancel
-    )
-
-
-  }
+    connectToCancelBet(handleCancelBetPayload, requestDataCancel);
+  };
 
   //We call this method and then based on state its bet,sell or cancel
   const handleBet = () => {
@@ -288,368 +279,208 @@ const Bet = ({
       placeSell();
     }
   };
+
+  const getBorderValues=(index)=>{
+    switch(index){
+      case 0 :{ return '15px 0px 0px 15px'}
+      case 1 :{ return '0px 0px 0px 0px'}
+      case 2 :{ return '0px 0px 0px 0px'}
+      case 3 :{ return '0px 15px 15px 0px'}
+      default:{return '0px'}
+    }
+  }
+  const handleBetAmountChanged=(amount)=>{
+    setBetAmount(amount)
+  }
+  const handleSubtractAmount=()=>{
+    setBetAmount(betAmount-betOptionMoney)
+  }
+  const handleAddAmount=()=>{
+    console.log(betAmount+betOptionMoney)
+    setBetAmount(betAmount+betOptionMoney)
+  }
   //This method sets text in BET button, and depends on state of game and state of bet
   const getButtonText = () => {
     if (isWaitingState(gameState)) {
-      if (!bet) return "Bet";
-      if (bet) return "Cancel";
+      if (!bet) return "BET";
+      if (bet) return "CANCEL";
     }
     if (isStartedState(gameState) && !bet) {
-      return "Bet";
+      return "BET";
     }
     if (isFinishedState(gameState) || isAutoCashOutDone) {
-      return "Bet";
+      return "BET";
     }
-    return "Sell";
+    return "SELL";
   };
 
   return (
     <Box
-      style={{
-        backgroundImage: "linear-gradient(-211deg, #2D274A 0%, #201C36 100%)",
-        width: "100%",
-        padding: "1rem",
-        color: "white",
-        fontWeight: "bold",
-      }}
-    >
-      {" "}
-      Bet
-      <Box
-        style={{
-          width: "100%",
-          height: "86%",
-          display: "flex",
-          justifyContent: "stretch",
-          alignItems: "stretch",
-
-          gap: "1rem",
-        }}
+        sx={(theme) => ({
+          backgroundColor: theme.colors.blue600[0],
+          width: '100%',
+          padding: '15px',
+          color: 'white',
+          fontWeight: 'bold',
+          borderRadius: '15px',
+        })}
       >
         <Box
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            gap: isLandScape ? "0.5rem" : "0.3rem",
-            width: "100%",
-            opacity: !gameOver || isBeting ? 0.6 : 1,
-            transition: "all 0.5",
-            "& *": {
-              cursor: "pointer",
-            },
-
-            // alignItems: "center",
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginBottom: '20px',
           }}
         >
-          <TextInput
-            value={betAmount}
-            onChange={(event) =>
-              setBetAmount(Number(event.target.value.replace(/\D/g, "")))
-            }
-            // type="number"
-            variant="filled"
-            color="#685ab0"
-            style={{
-              "& input": {
-                backgroundColor: "#4a407d",
-                color: "white",
-                border: "1px solid #685ab0",
-                padding: "0.5rem",
-                borderRadius: "4px",
+          <Button
+            onClick={() => setActiveButton(0)}
+            variant="transparent"
+            sx={(theme) => ({
+              borderRadius: '15px 0px 0px 15px',
+              backgroundColor: theme.colors.blue800[0],
+              color: activeButton === 0 ? theme.colors.yellow[0] : theme.colors.white[0],
+              width: '100%',
+            })}
+          >
+            Bet
+          </Button>
+          <Button
+            onClick={() => setActiveButton(1)}
+            variant="transparent"
+            sx={(theme) => ({
+              borderRadius: '0px 15px 15px 0px',
+              backgroundColor: theme.colors.blue800[0],
+              color: activeButton === 1 ? theme.colors.yellow[0] : theme.colors.white[0],
+              width: '100%',
+            })}
+          >
+            Auto
+          </Button>
+        </Box>
+
+        <Box
+          sx={{
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'stretch',
+            alignItems: 'stretch',
+            gap: '1rem',
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              gap: '0.3rem',
+              width: '100%',
+              opacity: !gameOver || bet ? 0.6 : 1,
+              transition: 'all 0.5s',
+              '*': {
+                cursor: 'pointer',
               },
             }}
-            rightSection={
-              <Box
-                style={{
-                  display: "flex",
-                  gap: "0.1rem",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  marginRight: "2rem",
-                }}
-              >
-                <button
-                  style={{
-                    width: "30px",
-                    height: "28px",
-                    background: "#2c264a",
-                    border: "none",
-                    outline: "none",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                  onClick={() => {
-                    setBetAmount((prev) => prev + betOptionMoney);
-                  }}
-                >
-                  <span
-                    style={{
-                      color: "#2c264a",
-                      background: "#01efb7",
-                      borderRadius: "50%",
-                      width: "20px",
-                      height: "20px",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      fontSize: "1.5rem",
-                      fontWeight: "bold",
-
-                      paddingTop: "2px",
-                      paddingLeft: "1px",
-                    }}
-                  >
-                    +
-                  </span>
-                </button>
-                <button
-                  style={{
-                    width: "30px",
-                    height: "28px",
-                    background: "#2c264a",
-                    border: "none",
-                    outline: "none",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                  onClick={() => {
-                    if (betAmount > 0) {
-                      setBetAmount((prev) => prev - betOptionMoney);
-                    }
-                  }}
-                >
-                  <span
-                    style={{
-                      color: "#2c264a",
-                      background: "#ff3b65",
-                      borderRadius: "50%",
-                      width: "20px",
-                      height: "20px",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      fontSize: "1.5rem",
-                      fontWeight: "bold",
-
-                      //   paddingBottom: "3px",
-                      paddingRight: "1px",
-                    }}
-                  >
-                    -
-                  </span>
-                </button>
-              </Box>
-            }
-          />
-          <Box
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              gap: isLandScape ? "1rem" : "0.3rem",
-            }}
           >
-            {optionsMoneyToBet.map((option) => {
-              return (
-                <button
+            <BetInput
+              betAmount={betAmount} 
+              handleBetAmountChanged={handleBetAmountChanged} 
+              subtractAmount={handleSubtractAmount}
+              addAmount={handleAddAmount}
+              />
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: '5px',
+              }}
+            >
+              {optionsMoneyToBet.map((option, index) => (
+                <Button
                   key={option}
-                  style={{
-                    border: "1px solid white",
-                    padding: "0.5rem",
-                    color: "#8674e3",
-                    border: "1px solid ",
-                    borderColor:
-                      option === betOptionMoney ? "#008563" : "#685ab0",
-                    width: "100%",
-                    background: "transparent",
-                    whiteSpace: "nowrap",
-                    borderRadius: "4px",
-                  }}
+                  sx={(theme) => ({
+                    borderRadius: getBorderValues(index),
+                    color: theme.colors.white[0],
+                    width: '100%',
+                    background: theme.colors.blue800[0],
+                    whiteSpace: 'nowrap',
+                    border:` solid 1px ${option===betOptionMoney? theme.colors.yellow[0]: 'transparent'}`,
+                  })}
                   onClick={() => {
                     setBetOptionMoney(option);
                   }}
                 >
                   {option} {currentUser?.casinoCurrency}
-                </button>
-              );
-            })}
+                </Button>
+              ))}
+            </Box>
+            <Text
+              sx={(theme) => ({
+                fontWeight: 'normal',
+                color: theme.colors.white[0],
+              })}
+            >
+              Auto Cashout
+            </Text>
+            <AutocashoutBetInput />
           </Box>
           <Box
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'stretch',
+              width: '100%',
             }}
           >
-            <Text>Auto Cashout</Text>
-            <Switch
-              color="green"
-              value={autoCashOut}
-              onChange={() => setAutoCashOut(!autoCashOut)}
-              size="xs"
-              styles={(theme) => ({
-                track: {
-                  backgroundColor: autoCashOut ? "red" : "gray",
-                  border: "none",
-                },
-                thumb: {
-                  backgroundColor: "whitesmoke",
-                },
+            <Button
+              disabled={
+                (!bet && isStartedState(gameState)) || gameOver || isAutoCashOutDone
+              }
+              sx={(theme) => ({
+                background:
+                  (!bet && isStartedState(gameState)) ||
+                  gameOver ||
+                  isAutoCashOutDone
+                    ? grayColor
+                    : isWaitingState(gameState) && bet
+                    ? redColor
+                    : !isGoingDown
+                    ? `linear-gradient(180deg, ${theme.colors.green[0]}, ${theme.colors.green[1]})`
+                    : redColor,
+                boxShadow: 'inset 0px -4px -4px 10px rgba(0, 0, 0, 0.25)',
+                transition: 'background-color 0.5s',
+                width: '100%',
+                height: '100%',
+                fontSize: '2.5rem',
+                borderRadius: '15px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                border: 'none',
+                outline: 'none',
+                filter: 'drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))',
               })}
-            />
-          </Box>
-          <TextInput
-            value={`${autoCashOutAmount}x`}
-            onChange={(event) =>
-              setAutoCashOutAmount(
-                Number(event.target.value.replace(/\D/g, ""))
-              )
-            }
-            // type="number"
-            variant="filled"
-            color="#685ab0"
-            style={{
-              "& input": {
-                backgroundColor: "#4a407d00",
-                color: "white",
-                border: "1px solid #685ab0",
-                padding: "0.5rem",
-                borderRadius: "4px",
-              },
-            }}
-            rightSection={
+              onClick={handleBet}
+            >
               <Box
-                style={{
-                  display: "flex",
-                  gap: "0.1rem",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  marginRight: "2rem",
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
                 }}
               >
-                <button
-                  style={{
-                    width: "30px",
-                    height: "28px",
-                    background: "#4a407d",
-                    border: "none",
-                    outline: "none",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                  onClick={() => {
-                    setAutoCashOutAmount((prev) =>
-                      Number(Number(prev) + 0.1).toFixed(1)
-                    );
-                  }}
-                >
-                  <span
-                    style={{
-                      color: "#2c264a",
-                      background: "#fff",
-                      borderRadius: "50%",
-                      width: "20px",
-                      height: "20px",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      fontSize: "1.5rem",
-                      fontWeight: "bold",
-                      paddingTop: "2px",
-                      paddingLeft: "1px",
-                    }}
-                  >
-                    +
-                  </span>
-                </button>
-                <button
-                  style={{
-                    width: "30px",
-                    height: "28px",
-                    background: "#4a407d",
-                    border: "none",
-                    outline: "none",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                  onClick={() => {
-                    if (autoCashOutAmount > 0) {
-                      setAutoCashOutAmount((prev) =>
-                        Number(Number(prev) - 0.1).toFixed(1)
-                      );
-                    }
-                  }}
-                >
-                  <span
-                    style={{
-                      color: "#2c264a",
-                      background: "#fff",
-                      borderRadius: "50%",
-                      width: "20px",
-                      height: "20px",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      fontSize: "1.5rem",
-                      fontWeight: "bold",
-
-                      //   paddingBottom: "3px",
-                      paddingRight: "1px",
-                    }}
-                  >
-                    -
-                  </span>
-                </button>
+                <div>{getButtonText()}</div>
+                <p style={{ fontSize: '15px', margin: 0 }}>
+                  {!isWaitingState(gameState) && bet && isGoingDown && '50%'}
+                </p>
               </Box>
-            }
-          />
+            </Button>
+          </Box>
         </Box>
-        <Button
-      disabled={
-        (!bet && isStartedState(gameState)) || gameOver || isAutoCashOutDone
-      }
-      style={{
-        backgroundColor:
-          (!bet && isStartedState(gameState)) ||
-          gameOver ||
-          isAutoCashOutDone
-            ? grayColor
-            : isWaitingState(gameState) && bet
-            ? redColor
-            : !isGoingDown
-            ? greenColor
-            : redColor,
-        boxShadow: "inset 0px -4px -4px 10px rgba(0, 0, 0, 0.25)",
-        transition: "background-color 0.5s",
-        width: "100%",
-        minHeight: "9rem",
-        height: "100%",
-        fontSize: "2.5rem",
-        borderRadius: "0.3rem",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        border: "none",
-        outline: "none",
-        filter: "drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))"
-      }}
-      onClick={handleBet}
-    >
-      <Box style={{display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center'}}>
-      <div>{getButtonText()}</div>
-      <p style={{ fontSize: "15px", margin: 0 }}>
-        {(!isWaitingState(gameState) && bet && isGoingDown) && "50%"}
-      </p>
       </Box>
-    
-    </Button>
-      </Box>
-    </Box>
   );
 };
 
