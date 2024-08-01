@@ -3,7 +3,7 @@ import { RSocketClient } from "rsocket-core";
 import RSocketWebSocketClient from "rsocket-websocket-client";
 import { showErrorNotification } from "../components/util/notificationSystem";
 
-const BASE_URL=process.env.BASE_URL_SOCKET+'/'
+const BASE_URL=import.meta.env.VITE_BASE_URL_SOCKET+'/'
 
 function clientSetup(){
     return  new RSocketClient({

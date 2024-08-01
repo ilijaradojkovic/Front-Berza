@@ -2,7 +2,7 @@ import { BreakfastDiningOutlined } from "@mui/icons-material"
 import axios from "axios"
 
 const SAFE_ROUTES = ['/users/user/auth',]; // Add more safe routes as needed
-const BASE_URL = process.env.BASE_URL_REST +'/api';
+const BASE_URL = import.meta.env.VITE_BASE_URL_REST +'/api';
 
 const axiosWithInterceptor = axios.create({
     baseURL: BASE_URL, // Replace with your API base URL
