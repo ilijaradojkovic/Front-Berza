@@ -83,9 +83,9 @@ function App() {
   useEffect(() => {
     refetchCasinoConfiguration()
     const messageHandler = (event) => {
-      if (event.origin !== 'http://localhost:5174') { // Replace with the origin of the parent window
-        return;
-      }
+      // if (event.origin !== 'http://localhost:5174') { // Replace with the origin of the parent window
+      //   return;
+      // }
 
       addAccountMutation.mutate(event.data.userId);
     };
