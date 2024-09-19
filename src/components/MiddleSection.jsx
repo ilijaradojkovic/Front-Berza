@@ -23,6 +23,8 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  AreaChart,
+  Area,
 } from "recharts";
 import History from "./History/History";
 import Bets from "./Bets";
@@ -57,51 +59,52 @@ import { useMutation } from "react-query";
 
 //   const [scale, setScale] = useState(false);
 
-//   // useEffect(() => {
-//   //   if (value < 1) {
-//   //     setFalling(true);
-//   //   } else {
-//   //     setFalling(false);
-//   //   }
-//   // }, [value]);
+  // useEffect(() => {
+  //   if (value < 1) {
+  //     setFalling(true);
+  //   } else {
+  //     setFalling(false);
+  //   }
+  // }, [value]);
 
-//   // useEffect(() => {
-//   //   if (falling) {
-//   //     setScale(true);
-//   //     const timeout = setTimeout(() => {
-//   //       setScale(false);
-//   //     }, 1000);
-//   //   }
-//   // }, [falling]);
+  // useEffect(() => {
+  //   if (falling) {
+  //     setScale(true);
+  //     const timeout = setTimeout(() => {
+  //       setScale(false);
+  //     }, 1000);
+  //   }
+  // }, [falling]);
 
-//   // // useEffect(() => {
-//   // //   const audio = new Audio(fail);
-//   // //   if (falling && audioPermission) {
-//   // //     audio.play();
-//   // //   }
-//   // // }, [falling, audioPermission]);
+  // useEffect(() => {
+  //   const audio = new Audio(fail);
+  //   if (falling && audioPermission) {
+  //     audio.play();
+  //   }
+  // }, [falling, audioPermission]);
 
-//   // useEffect(() => {
-//   //   // Ako je igra završena, učitava se animacija eksplozije
-//   //   const animationData = falling ? explosion : myLottieAnimation;
-//   //   const loop = falling ? false : true;
-//   //   const speed = falling ? 1 : 1;
+//   useEffect(() => {
+//     // Ako je igra završena, učitava se animacija eksplozije
+//     const animationData =  myLottieAnimation;
+//     const loop =  true;
+//     const speed =  1;
 
-//   //   anim.current = lottie.loadAnimation({
-//   //     container: animContainer.current,
-//   //     renderer: "svg",
-//   //     loop: loop,
-//   //     // speed: speed,
-//   //     autoplay: true,
-//   //     rendererSettings: {
-//   //       preserveAspectRatio: "xMidYMid slice",
-//   //     },
-//   //     animationData: animationData,
-//   //   });
-//   //   anim.current.setSpeed(speed);
 
-//   //   return () => anim.current.destroy();
-//   // }, [falling]);
+//     anim.current = lottie.loadAnimation({
+//       container: animContainer.current,
+//       renderer: "svg",
+//       loop: loop,
+//       // speed: speed,
+//       autoplay: true,
+//       rendererSettings: {
+//         preserveAspectRatio: "xMidYMid slice",
+//       },
+//       animationData: animationData,
+//     });
+//     anim.current.setSpeed(speed);
+
+//     return () => anim.current.destroy();
+//   }, [y]);
 
 //   // useEffect(() => {
 //   //   if (value > prevValue.current) {
@@ -122,10 +125,10 @@ import { useMutation } from "react-query";
 
 //   return (
 //     <svg
-//       x={isLandScape ? (value < 1 ? x - 20 : x - 30) : x - 10}
-//       y={isLandScape ? y - 20 : y - 10}
-//       width={isLandScape ? 50 : 30}
-//       height={isLandScape ? 50 : 30}
+//       x={x - 10}
+//       y={ y - 10}
+//       width={ 30}
+//       height={ 30}
 //       transform={`scale(2)`}
 //       style={{
 //         overflow: "visible !important",
@@ -136,21 +139,39 @@ import { useMutation } from "react-query";
 //         height="100%"
 //         transform={`scale(${scale ? 5.5 : 1})`}
 //         style={{
-//           translate: `${gameOver ? 1.5 : 1}}`,
-//           transition: `all ${gameOver ? 1.5 : 0}s ease-in-out 0.2s`,
+//           translate: `1`,
+//           transition: `all  0s ease-in-out 0.2s`,
 //           transformOrigin: "center",
 //         }}
 //       >
 //         <div
 //           ref={animContainer}
 //           style={{
-//             overflow: "visible !important",
+//             overflow: "visible !important",u
 //           }}
 //         />
 //       </foreignObject>
 //     </svg>
 //   );
 // };
+
+const CustomDot = ({ chartData, ...props }) => {
+  const { cx, cy,index, payload } = props;
+
+  console.log(index)
+  // Determine if the current data point is the last one in the chartData array
+  const isLastPoint = chartData[chartData.length - 1] === payload;
+
+  if (isLastPoint) {
+    return (
+      <svg x={cx - 5} y={cy - 5} width={30} height={30} viewBox="0 0 10 10">
+        <circle cx={5} cy={5} r={5} fill="#FF0000" />
+      </svg>
+    );
+  }
+
+  return null;
+};
 
 const MiddleSection = ({
   isLandScape,
@@ -276,7 +297,14 @@ const MiddleSection = ({
     currentMultiplier,
     from: { currentMultiplier: 0 },
   });
+  const [xDomain, setXDomain] = useState([0, 80]);
+  const [yDomain, setYDomain] = useState([0, Math.max(...chartData.map(d => d.y)) + 10]);
 
+  useEffect(() => {
+    // Update domains on new data
+    setXDomain([0, Math.max(...chartData.map(d => d.x))*1.5 + 10]);
+    setYDomain([0, Math.max(...chartData.map(d => d.y)) *1.5+ 10]);
+  }, [chartData]);
   return (
     <Box
       style={{
@@ -337,7 +365,7 @@ const MiddleSection = ({
           }}
      
         >
-          <LineChart
+          <AreaChart
         
             data={chartData}
             width={width}
@@ -352,31 +380,21 @@ const MiddleSection = ({
           >
             <defs>
               <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#008563" stopOpacity={1} />
-                <stop offset="95%" stopColor="#FF003c" stopOpacity={1} />
+                <stop offset="0%" stopColor="#00FFB2" stopOpacity={0.8} />
+                <stop offset="100%" stopColor="#00FFB2" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <XAxis dataKey="x" type="number" domain={[0, 80]} />
+            <XAxis dataKey="x" type="number" domain={xDomain} />
             <YAxis
-              domain={[0, maxY + 1]}
+              domain={yDomain}
               tickFormatter={(value) => value.toFixed(1)}
             />
-            {isAnimationOn &&
-              segments.map((segment, index) => (
-                <Line
-                  key={index}
-                  type="monotone"
-                  dataKey="y"
-                  data={segment.data}
-                  stroke={segment.color}
-                  strokeWidth={3}
-                  dot={false}
-                  isAnimationActive={true}
-                  animationDuration={100}
-                  animationEasing="ease-out"
-                />
-              ))}
-          </LineChart>
+            {/* {isAnimationOn && */}
+              {/* segments.map((segment, index) => ( */}
+              <Area type="monotone" dataKey="y" stroke="#8884d8" fill="#8884d8"  dot={<CustomDot chartData={chartData} />}/>
+
+            {/* ))} */}
+          </AreaChart>
 
       
           <Box

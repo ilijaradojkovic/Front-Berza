@@ -34,7 +34,7 @@ export const AllBets = ({ notifyIncomingBets }) => {
   }, [data]);
 
   return (
-    <Box style={{ width: "100%" }}>
+    <Box style={{ width: "100%",height:'100%' }}>
     {data?.data?.data?.bets.map((x, index) => (
       <Box
         key={index}

@@ -9,7 +9,8 @@ const Bets = ({ setStart, isLandScape, gameOver, setBalance, balance, currentVal
         display: "flex",
         flexDirection: isLandScape ? "row" : "column",
         overflow: "hidden",
-        gap:'15px'
+        gap:'15px',
+
         
       }}
     >

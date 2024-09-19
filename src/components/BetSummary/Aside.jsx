@@ -210,7 +210,7 @@ const Aside = ({ isLandScape, bets, currentUser }) => {
         >
           <Box
             style={{
-              maxHeight: "70vh",
+              maxHeight: "82vh",
               overflowY: "auto",
                 padding:'0px 15px'
             }}
@@ -220,6 +220,7 @@ const Aside = ({ isLandScape, bets, currentUser }) => {
                 width: "100%",
                 color: theme.colors.gray[1],
                 border: "none",
+                height:'100%',
               
               })}
             >

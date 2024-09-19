@@ -114,7 +114,6 @@ function App() {
       setIsSoundOn(currentUser?.preferences.isSoundOn);
       setCurrentAvatarSelectedIndex(currentUser?.preferences.imageIndex)
       setCurrentUser(userData);
-
     }
   }, [user]);
 
