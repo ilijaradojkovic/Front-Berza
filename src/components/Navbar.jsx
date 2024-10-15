@@ -87,6 +87,7 @@ const Navbar = ({
           <TextInput
             value={balanceValue}
             onChange={handleBalanceChange}
+            readOnly
             sx={(theme) => ({
               input: {
                 backgroundColor: theme.colors.blue800[0],

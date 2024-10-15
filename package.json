@@ -9,7 +9,11 @@
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "dev:mozzart": "vite --mode mozzart",
-    "dev:meridian": "vite --mode meridian"
+    "dev:meridian": "vite --mode meridian",
+    "dev:localtestmozzart": "vite --mode localtestmozzart",
+    "dev:localtestmeridian": "vite --mode localtestmeridian"
+
+
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",

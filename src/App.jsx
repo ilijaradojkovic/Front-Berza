@@ -206,7 +206,8 @@ function App() {
           'green':['#00FC83','#008563','#00FFB2','#00FFB2'],
           'black':['#000000'],
           'rose':['#B960FF'],
-          'purple':['#685AB0']
+          'purple':['#685AB0'],
+          'disabled':['#4D4F58']
         },
       }}
     >
@@ -249,6 +250,7 @@ function App() {
                 isLandScape={isLandScape}
                 bets={bets}
                 currentUser={currentUser}
+                casinoConfiguration={casinoConfigurationData}
               />
             </Box>
             <Box

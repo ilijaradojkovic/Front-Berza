@@ -158,7 +158,6 @@ import { useMutation } from "react-query";
 const CustomDot = ({ chartData, ...props }) => {
   const { cx, cy,index, payload } = props;
 
-  console.log(index)
   // Determine if the current data point is the last one in the chartData array
   const isLastPoint = chartData[chartData.length - 1] === payload;
 

@@ -10,7 +10,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
 const History = ({ gameState }) => {
   const [page, setPage] = useState(0);
-  const [size, setSize] = useState(15);
+  const [size, setSize] = useState(20);
   const [opened, { open, close }] = useDisclosure(false);
 
   const { data, refetch } = useQuery(["historyGames"], () =>
@@ -18,7 +18,8 @@ const History = ({ gameState }) => {
   );
 
   useEffect(() => {
-    refetch();
+    if(opened===false)
+      refetch();
   }, [gameState]);
 
 

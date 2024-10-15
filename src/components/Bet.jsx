@@ -47,7 +47,7 @@ const Bet = ({
   casinoConfigurationData,
 }) => {
   const [betAmount, setBetAmount] = useState(100);
-  const [autoCashOutAmount, setAutoCashOutAmount] = useState(1.6);
+  const [autoCashOutAmount, setAutoCashOutAmount] = useState(1.0);
   const [autoCashOut, setAutoCashOut] = useState(false);
   const [optionsMoneyToBet, seOptionsMoneyToBet] = useState([]);
   const [betOptionMoney, setBetOptionMoney] = useState();
@@ -67,6 +67,7 @@ const Bet = ({
     }
   }, [currentMultiplier]);
 
+
   useEffect(() => {
     if (isFinishedState(gameState)) {
       setBet(null);
@@ -82,6 +83,7 @@ const Bet = ({
       casinoConfigurationData.incrementor3,
       casinoConfigurationData.incrementor4,
     ]);
+    setBetAmount(casinoConfigurationData.casinoDefaultValueBet)
   }, [casinoConfigurationData]);
 
   useEffect(() => {
@@ -344,7 +346,7 @@ const Bet = ({
         }}
       >
         <Button
-          onClick={() => setActiveButton(0)}
+          onClick={() => {setActiveButton(0); setAutoCashOut(false)}}
           variant="transparent"
           sx={(theme) => ({
             borderRadius: "15px 0px 0px 15px",
@@ -359,7 +361,10 @@ const Bet = ({
           Bet
         </Button>
         <Button
-          onClick={() => setActiveButton(1)}
+          onClick={() =>{
+            setActiveButton(1);
+            setAutoCashOut(true);
+          } }
           variant="transparent"
           sx={(theme) => ({
             borderRadius: "0px 15px 15px 0px",
@@ -442,7 +447,10 @@ const Bet = ({
           >
             Auto Cashout
           </Text>
-          <AutocashoutBetInput />
+          <AutocashoutBetInput   betAmount={autoCashOutAmount}
+            handleBetAmountChanged={(value)=> setAutoCashOutAmount(value)}
+            isAutocashOut={autoCashOut}
+            />
         </Box>
         <Box
           sx={{

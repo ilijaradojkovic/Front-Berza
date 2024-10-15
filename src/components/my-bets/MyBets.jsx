@@ -8,7 +8,7 @@ import { Box } from "@mantine/core";
 
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import GppGoodOutlinedIcon from "@mui/icons-material/GppGoodOutlined";
-export const MyBets = () => {
+export const MyBets = ({casinoConfiguration}) => {
   const queryClient = useQueryClient();
   let size = 10;
   let page = 0;
@@ -40,7 +40,7 @@ export const MyBets = () => {
           className={getRowClassName(x.multiplier)}
         >
           <Box style={{ flex: 1, display: "flex", justifyContent: "start" }}>
-            {timeFormat(x.time)}
+            {timeFormat(x.time,casinoConfiguration)}
           </Box>
           <Box style={{ flex: 1, display: "flex", justifyContent: "start" }}>
             {x.amount.toFixed(2)}
@@ -56,7 +56,7 @@ export const MyBets = () => {
                 fontWeight: "bold",
               })}
             >
-              {x.multiplier.toFixed(2)}x
+              {x.multiplier.toFixed(2)}
             </Box>
           </Box>
           <Box style={{ flex: 1, display: "flex", justifyContent: "end" }}>
@@ -68,7 +68,7 @@ export const MyBets = () => {
                 gap: "5px",
               }}
             >
-              <span>{formatToTwoDecimals(x.amount * x.multiplier)}</span>
+              <span>{formatToTwoDecimals(x.cashOut)}</span>
               <GppGoodOutlinedIcon
                 sx={(theme) => ({ color: theme.colors.green[0] })}
               />

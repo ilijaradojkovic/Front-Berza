@@ -8,7 +8,7 @@ import { useQuery } from "react-query";
 import "./Aside.css";
 import { BorderBottom } from "@mui/icons-material";
 
-const Aside = ({ isLandScape, bets, currentUser }) => {
+const Aside = ({ isLandScape, bets, currentUser,casinoConfiguration }) => {
   const [activeButton, setActiveButton] = useState(0);
   //1 je Biggest wins
   const [topWinsType, setTopWinsType] = useState(1);
@@ -121,27 +121,7 @@ const Aside = ({ isLandScape, bets, currentUser }) => {
         </Box>
         {activeButton === 2 && (
           <Box>
-            <Box
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                gap: "1rem",
-                marginBottom: "1rem",
-              }}
-            >
-              <Box
-                style={{
-                  padding: "0.5rem",
-                  color: "white",
-                  borderRadius: "0.2rem",
-                  border: topWinsType === 1 ? "1px solid" : "",
-                  cursor: "pointer",
-                }}
-                onClick={() => toggleTopWinsType(1)}
-              >
-                BIGGEST WINS
-              </Box>
-            </Box>
+        
             <Box
               style={{
                 display: "flex",
@@ -251,13 +231,14 @@ const Aside = ({ isLandScape, bets, currentUser }) => {
                 </Box>
               </Box>
               {activeButton === 0 ? (
-                <AllBets notifyIncomingBets={notifyIncomingBets} />
+                <AllBets notifyIncomingBets={notifyIncomingBets} casinoConfiguration={casinoConfiguration} />
               ) : activeButton === 1 ? (
-                <MyBets />
+                <MyBets casinoConfiguration={casinoConfiguration} />
               ) : (
                 <TopWins
                   topWinsType={topWinsType}
                   groupByType={groupByType}
+                  casinoConfiguration={casinoConfiguration}
                   currentUser={currentUser}
                 />
               )}

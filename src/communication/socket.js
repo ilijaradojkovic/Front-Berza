@@ -112,8 +112,11 @@ export function connectToCashInBet(handlePayload, data) {
             handlePayload(response);
           },
           onError: (error) => {
-            console.error("Error placing bet:", error);
-            showErrorNotification("Error placing bet "+ error.message)
+            let backendMessage = error.message.split(":").pop().trim();  // Uzimamo poslednji deo posle dvotačke
+            backendMessage=backendMessage.split('.')[0]
+
+            console.error("Error placing bet:", backendMessage);
+            showErrorNotification("Error placing bet "+ backendMessage)
 
           },
         });
